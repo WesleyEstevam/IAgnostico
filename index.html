@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="src/styles/styles.css" />
+    <link rel="shortcut icon" type="image/png" href="./src/images/logo_final.png">
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+      integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <title>IAgnostico</title>
+  </head>
+  <body>
+    <header>
+      <nav id="navbar">
+        <i class="fa-solid fa-stethoscope" id="nav_logo">IAgnostico</i>
+
+        <ul id="nav_list">
+          <li class="nav-item active">
+            <a href="#home">Início</a>
+          </li>
+          <li class="nav-item">
+            <a href="#menu">Serviços</a>
+          </li>
+          <li class="nav-item">
+            <a href="#testimonials">Depoimentos</a>
+          </li>
+        </ul>
+
+        <button id="mobile_btn">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </nav>
+
+      <div id="mobile_menu">
+        <ul id="mobile_nav_list">
+          <li class="nav-item">
+            <a href="#home">Início</a>
+          </li>
+          <li class="nav-item">
+            <a href="#menu">Serviços</a>
+          </li>
+          <li class="nav-item">
+            <a href="#testimonials">Depoimentos</a>
+          </li>
+        </ul>
+      </div>
+    </header>
+
+    <main id="content">
+      <section id="home">
+        <div class="shape"></div>
+        <div id="cta">
+          <h1 class="title">
+            Diagnóstico Inteligente com
+            <span>IAgnostico</span>
+          </h1>
+
+          <p class="description">
+            Utilize inteligência artificial para auxiliar na precisão de
+            diagnósticos diferenciais de maneira rápida e eficiente.
+          </p>
+
+          <button class="btn-default">Solicitar Demonstração</button>
+
+          <div class="social-media-buttons">
+            <a href="https://wa.me/5585994001558/?text=Quero uma apresentação do IAgnostico" target="_blank">
+              <i class="fa-brands fa-whatsapp"></i>
+            </a>
+
+            <a href="">
+              <i class="fa-brands fa-instagram"></i>
+            </a>
+
+            <a href="">
+              <i class="fa-brands fa-linkedin"></i>
+            </a>
+          </div>
+        </div>
+
+        <div id="banner">
+          <!-- <img src="src/images/hero.png" alt="" /> -->
+        </div>
+      </section>
+
+      <section id="menu">
+        <h1 class="section-title">Vantagens de usar o IAgnostico</h1>
+
+        <div id="dishes">
+          <div class="dish">
+            <img src="src/images/dish.png" class="dish-image" alt="" />
+            
+            <h3 class="dish-title">Diagnósticos Diferenciais</h3>
+            <span class="dish-description">
+              Nossa IA analisa sintomas e exames para sugerir possíveis
+              diagnósticos.
+            </span>
+          </div>
+
+          <div class="dish">
+            <img src="src/images/dish2.png" class="dish-image" alt="" />
+
+            <h3 class="dish-title">Mapas Mentais</h3>
+
+            <span class="dish-description">
+              Visualize diagnósticos de forma intuitiva e conectada.
+            </span>
+          </div>
+
+          <div class="dish">
+            <img src="src/images/dish3.png" class="dish-image" alt="" />
+
+            <h3 class="dish-title">Segurança e Compliance</h3>
+
+            <span class="dish-description">
+              Garantindo conformidade com a LGPD e HIPAA.
+            </span>
+          </div>
+
+          <div class="dish">
+            <img src="src/images/dish4.png" class="dish-image" alt="" />
+
+            <h3 class="dish-title">Análise de imagens</h3>
+
+            <span class="dish-description">
+              Tenha em segundos uma análise precisa de imagens DICOM, normalmente usadas
+              em raioX, tomografias etc.
+            </span>
+        </div>
+      </section>
+
+      <section id="testimonials">
+        <img src="src/images/banner_depoimentos.png" id="testimonial_chef" alt="" />
+
+        <div id="testimonials_content">
+          <h2 class="section-title">Depoimentos</h2>
+          <h3 class="section-subtitle">O que os clientes falam sobre nós</h3>
+
+          <div id="feedbacks">
+            <div class="feedback">
+              <img src="src/images/depoimento_muzy.png" class="feedback-avatar" alt="" />
+
+              <div class="feedback-content">
+                <p>
+                  Dr.Paulo Muzy Cavalcante
+                  <span>⭐⭐⭐⭐⭐</span>
+                </p>
+                <p>
+                  "Uma ferramenta simplesmente excelente! Otimizou 50% do meu esforço
+                  durante o proceso de definição de diagnósticos. Sem falar que usando a 
+                  ferramenta de mapa mental, meus pacientes conseguiram entender com mais clareza
+                  o problema que estevam enfrentando."
+                </p>
+              </div>
+            </div>
+
+            <div class="feedback">
+              <img src="src/images/depoimento_manueliane.png" class="feedback-avatar" alt="" />
+
+              <div class="feedback-content">
+                <p>
+                  Dra.Manueliane Costa
+                  <span>⭐⭐⭐⭐⭐</span>
+                </p>
+                <p>
+                  "Adorei a experiência do app, de fato é uma solução inovadora que sem dúvidas
+                  vai revolucionar a forma como profissionais da saúde e pacientes, encaram um diagnóstico
+                  complicado. Agradeço a equipe do IAgnostico pelo apoio constante."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <img src="src/images/wave.svg" alt="" />
+
+      <div id="footer_items">
+        <span id="copyright"> &copy 2025 IAgnostico LTDA</span>
+
+        <div class="social-media-buttons">
+          <a href="https://wa.me/5585994001558/?text=Quero uma apresentação do IAgnostico" target="_blank">
+            <i class="fa-brands fa-whatsapp"></i>
+          </a>
+
+          <a href="">
+            <i class="fa-brands fa-instagram"></i>
+          </a>
+
+          <a href="">
+            <i class="fa-brands fa-linkedin"></i>
+          </a>
+        </div>
+      </div>
+    </footer>
+    <script src="src/javascript/script.js"></script>
+  </body>
+</html>
