@@ -2,6 +2,7 @@
 @import url("header.css");
 @import url("home.css");
 @import url("menu.css");
+@import url("planos.css");
 @import url("testimonials.css");
 @import url("footer.css");
 
@@ -10,7 +11,7 @@
   --color-primary-2: #0cc0df;
   --color-primary-3: #f8d477;
   --color-primary-4: #ffe100;
-  --color-primary-5: #ffcb45;
+  --color-primary-5: #00109c;
 
   --color-neutral-1: #1d1d1d;
 }
@@ -41,6 +42,7 @@ section {
   justify-content: center;
   text-decoration: none;
   background-color: var(--color-primary-5);
+  color: var(--color-primary-1);
   border-radius: 12px;
   padding: 10px 14px;
   font-weight: 600;
@@ -50,7 +52,8 @@ section {
 }
 
 .btn-default:hover {
-  background-color: var(--color-primary-3);
+  background-color: var(--color-primary-1);
+  color: var(--color-primary-5);
 }
 
 .social-media-buttons {
