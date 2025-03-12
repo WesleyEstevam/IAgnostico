@@ -1,6 +1,6 @@
 header {
   width: 100%;
-  padding: 28px 8%;
+  padding: 15px 8%;
   position: sticky;
   top: 0;
   background-color: var(--color-primary-1);
@@ -15,8 +15,7 @@ header {
 }
 
 #nav_logo {
-  font-size: 24px;
-  color: var(--color-primary-2);
+  max-height: 66px;
 }
 
 #nav_list {
