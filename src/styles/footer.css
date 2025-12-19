@@ -2,6 +2,11 @@ footer {
   background-color: var(--color-primary-2);
 }
 
+#politica {
+  display: flex;
+  justify-content: center;
+}
+
 #footer_items {
   display: flex;
   justify-content: space-between;
