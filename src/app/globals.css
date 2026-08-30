@@ -1,0 +1,259 @@
+@import "tailwindcss" source(none);
+@source "../";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: "Nunito";
+  src: url("https://fonts.gstatic.com/s/nunito/v26/XRXI3I6Li01BKofiOc5wtlZ2di8HDIkhdTQ3jw.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme inline {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Nunito", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 2.5rem;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-xp: var(--xp);
+  --color-xp-foreground: var(--xp-foreground);
+  --color-streak: var(--streak);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --shadow-pop: 0 4px 0 0 var(--primary-dark);
+  --shadow-pop-info: 0 4px 0 0 #1899D6;
+  --shadow-pop-xp: 0 4px 0 0 #E0A800;
+  --shadow-pop-muted: 0 4px 0 0 #E5E5E5;
+  --shadow-soft: 0 6px 24px -8px rgb(0 0 0 / 0.08), 0 2px 6px -2px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 2px 0 0 #E5E5E5;
+}
+
+:root {
+  --background: oklch(0.99 0.005 120);
+  --foreground: oklch(0.22 0.03 240);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.03 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.03 240);
+
+  /* Duolingo green #58CC02 */
+  --primary: oklch(0.74 0.22 134);
+  --primary-foreground: oklch(1 0 0);
+  --primary-dark: #46A302;
+
+  --secondary: oklch(0.97 0.01 240);
+  --secondary-foreground: oklch(0.22 0.03 240);
+
+  --muted: oklch(0.965 0.008 240);
+  --muted-foreground: oklch(0.5 0.02 240);
+
+  --accent: oklch(0.95 0.04 134);
+  --accent-foreground: oklch(0.3 0.1 134);
+
+  --destructive: oklch(0.68 0.18 25);
+  --destructive-foreground: oklch(1 0 0);
+
+  --success: oklch(0.74 0.22 134);
+
+  /* Light blue info #1CB0F6 */
+  --info: oklch(0.72 0.16 230);
+  --info-foreground: oklch(1 0 0);
+
+  /* XP gold #FFC800 */
+  --warning: oklch(0.86 0.17 90);
+  --warning-foreground: oklch(0.3 0.08 80);
+  --xp: oklch(0.86 0.17 90);
+  --xp-foreground: oklch(0.3 0.08 80);
+
+  /* Streak orange #FF9600 */
+  --streak: oklch(0.76 0.18 55);
+
+  --border: oklch(0.92 0.008 240);
+  --input: oklch(0.92 0.008 240);
+  --ring: oklch(0.74 0.22 134);
+}
+
+.dark {
+  --background: oklch(0.18 0.02 240);
+  --foreground: oklch(0.98 0.005 240);
+  --card: oklch(0.22 0.025 240);
+  --card-foreground: oklch(0.98 0.005 240);
+  --muted: oklch(0.26 0.02 240);
+  --muted-foreground: oklch(0.7 0.02 240);
+  --border: oklch(0.3 0.02 240);
+  --input: oklch(0.3 0.02 240);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html, body {
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .btn-pop {
+    @apply relative inline-flex items-center justify-center font-extrabold uppercase tracking-wide rounded-2xl px-6 py-3 transition-transform duration-100 ease-out select-none;
+    will-change: transform;
+  }
+  .btn-pop:hover {
+    transform: translateY(-2px) scale(1.03);
+  }
+  .btn-pop:active {
+    transform: translateY(4px) scale(0.97);
+    box-shadow: none !important;
+  }
+  /* Shine sweep like arcade buttons */
+  .btn-pop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / 0.45) 50%, transparent 65%);
+    background-size: 250% 100%;
+    background-position: 200% 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .btn-pop:hover::after {
+    opacity: 1;
+    animation: shine 0.9s ease-out;
+  }
+  .card-pop {
+    box-shadow: var(--shadow-card);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-card);
+    transition: transform 0.18s cubic-bezier(.34, 1.56, .64, 1), box-shadow 0.18s ease;
+  }
+  .card-jelly:hover {
+    transform: translateY(-6px) rotate(-0.6deg) scale(1.02);
+    box-shadow: 0 12px 0 -2px var(--color-border), 0 18px 30px -18px rgb(0 0 0 / 0.25);
+  }
+  .card-jelly:active {
+    animation: jelly 0.45s ease-out;
+  }
+  .blob {
+    filter: blur(60px);
+    opacity: 0.5;
+    animation: blob-drift 14s ease-in-out infinite;
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) }
+  50% { transform: translateY(-12px) }
+}
+@keyframes pop-in {
+  0% { transform: scale(0.8); opacity: 0 }
+  60% { transform: scale(1.05); opacity: 1 }
+  100% { transform: scale(1); opacity: 1 }
+}
+@keyframes shine {
+  0% { background-position: 200% 0 }
+  100% { background-position: -80% 0 }
+}
+@keyframes jelly {
+  0% { transform: scale(1, 1) }
+  30% { transform: scale(1.1, 0.9) }
+  50% { transform: scale(0.92, 1.08) }
+  70% { transform: scale(1.04, 0.97) }
+  100% { transform: scale(1, 1) }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-6deg) }
+  50% { transform: rotate(6deg) }
+}
+@keyframes bounce-in {
+  0% { transform: translateY(40px) scale(0.7); opacity: 0 }
+  55% { transform: translateY(-10px) scale(1.08); opacity: 1 }
+  75% { transform: translateY(4px) scale(0.97) }
+  100% { transform: translateY(0) scale(1); opacity: 1 }
+}
+@keyframes pop-badge {
+  0%, 100% { transform: scale(1) rotate(-3deg) }
+  50% { transform: scale(1.12) rotate(3deg) }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(88 204 2 / 0.45) }
+  50% { box-shadow: 0 0 0 14px rgb(88 204 2 / 0) }
+}
+@keyframes blob-drift {
+  0%, 100% { transform: translate(0, 0) scale(1) }
+  33% { transform: translate(30px, -20px) scale(1.1) }
+  66% { transform: translate(-25px, 20px) scale(0.95) }
+}
+@keyframes tick-up {
+  0% { transform: translateY(0) }
+  40% { transform: translateY(-6px) scale(1.14) }
+  100% { transform: translateY(0) }
+}
+
+.animate-float { animation: float-slow 5s ease-in-out infinite }
+.animate-pop-in { animation: pop-in 0.5s cubic-bezier(.34,1.56,.64,1) both }
+.animate-wiggle { animation: wiggle 1.6s ease-in-out infinite }
+.animate-bounce-in { animation: bounce-in 0.7s cubic-bezier(.34,1.56,.64,1) both }
+.animate-pop-badge { animation: pop-badge 1.8s ease-in-out infinite }
+.animate-glow-pulse { animation: glow-pulse 2.2s ease-out infinite }
+.animate-tick { animation: tick-up 1.6s ease-in-out infinite }
+
+/* Staggered entrance for grids/lists */
+.stagger > * { animation: bounce-in 0.6s cubic-bezier(.34,1.56,.64,1) both }
+.stagger > *:nth-child(1) { animation-delay: 0.05s }
+.stagger > *:nth-child(2) { animation-delay: 0.12s }
+.stagger > *:nth-child(3) { animation-delay: 0.19s }
+.stagger > *:nth-child(4) { animation-delay: 0.26s }
+.stagger > *:nth-child(5) { animation-delay: 0.33s }
+.stagger > *:nth-child(6) { animation-delay: 0.4s }
+
+@media (prefers-reduced-motion: reduce) {
+  *, .stagger > * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
