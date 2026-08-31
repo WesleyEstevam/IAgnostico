@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Navbar } from "@/presentation/components/shared/navbar";
 import { Stat } from "@/presentation/components/shared/stat";
+import { CardDealSound } from "@/presentation/components/sound/card-deal-sound";
 
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
+      <CardDealSound />
       <Navbar />
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
         {/* Top stats */}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Navbar } from "@/presentation/components/shared/navbar";
+import { CardDealSound } from "@/presentation/components/sound/card-deal-sound";
 
 const especialidades = [
   {
@@ -35,6 +36,7 @@ const especialidades = [
 export default function EspecialidadePage() {
   return (
     <div className="min-h-screen bg-background">
+      <CardDealSound />
       <Navbar />
 
       <main className="mx-auto flex min-h-[calc(100svh-4rem)] max-w-5xl flex-col justify-center px-4 py-10 sm:px-6">

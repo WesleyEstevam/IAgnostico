@@ -4,11 +4,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "IAgnóstico — Treine raciocínio clínico todos os dias",
+    default: "IAgnóstico",
     template: "%s — IAgnóstico",
   },
-  description:
-    "Plataforma gamificada de casos clínicos com IA para estudantes de medicina.",
+  description: "Plataforma gamificada de casos clínicos com IA para estudantes de medicina.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

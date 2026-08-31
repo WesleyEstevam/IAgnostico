@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/presentation/components/shared/logo";
+import { LoginActions } from "./login-actions";
 
 export default function LoginPage() {
   return (
@@ -42,53 +43,7 @@ export default function LoginPage() {
             Seu próximo caso clínico está esperando.
           </p>
 
-          <div className="mt-8 grid gap-3">
-            <button type="button" className="btn-pop w-full border-2 border-border bg-card text-foreground shadow-[var(--shadow-pop-muted)]">
-              <span className="mr-3 text-lg font-extrabold text-info">G</span>
-              Continuar com Google
-            </button>
-            <button type="button" className="btn-pop w-full border-2 border-border bg-card text-foreground shadow-[var(--shadow-pop-muted)]">
-              <span className="mr-3 text-xl">●</span>
-              Continuar com Apple
-            </button>
-          </div>
-
-          <div className="my-7 flex items-center gap-4">
-            <div className="h-0.5 flex-1 bg-border" />
-            <span className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">ou</span>
-            <div className="h-0.5 flex-1 bg-border" />
-          </div>
-
-          <form className="space-y-5">
-            <label className="block">
-              <span className="mb-2 block text-sm font-extrabold">E-mail</span>
-              <input
-                type="email"
-                name="email"
-                autoComplete="email"
-                placeholder="voce@exemplo.com"
-                className="w-full rounded-2xl border-2 border-border bg-muted/30 px-4 py-3.5 font-bold outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 flex items-center justify-between text-sm font-extrabold">
-                Senha
-                <Link href="#" className="text-xs text-primary hover:underline">Esqueci minha senha</Link>
-              </span>
-              <input
-                type="password"
-                name="password"
-                autoComplete="current-password"
-                placeholder="Digite sua senha"
-                className="w-full rounded-2xl border-2 border-border bg-muted/30 px-4 py-3.5 font-bold outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary"
-              />
-            </label>
-
-            <Link href="/dashboard" className="btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)]">
-              Entrar
-            </Link>
-          </form>
+          <LoginActions />
 
           <p className="mt-7 text-center text-sm font-bold text-muted-foreground">
             Ainda não tem conta?{" "}
