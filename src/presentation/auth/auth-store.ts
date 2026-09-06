@@ -1,25 +1,47 @@
-const AUTH_STORAGE_KEY = "iagnostico:authenticated";
-const AUTH_CHANGED_EVENT = "iagnostico:auth-changed";
+export type AuthSession = {
+  authenticated: true;
+  user: {
+    uid: string;
+    email: string | null;
+    displayName: string | null;
+    photoURL: string | null;
+    emailVerified: boolean;
+  };
+  shifts: { current: number; max: number };
+};
+
+let snapshot: AuthSession | null | undefined;
+let activeRequest: Promise<void> | undefined;
+const listeners = new Set<() => void>();
 
 export function getAuthSnapshot() {
-  return window.localStorage.getItem(AUTH_STORAGE_KEY) === "true";
+  return snapshot;
 }
 
 export function getServerAuthSnapshot() {
-  return false;
+  return undefined;
 }
 
 export function subscribeToAuth(callback: () => void) {
-  window.addEventListener("storage", callback);
-  window.addEventListener(AUTH_CHANGED_EVENT, callback);
-
-  return () => {
-    window.removeEventListener("storage", callback);
-    window.removeEventListener(AUTH_CHANGED_EVENT, callback);
-  };
+  listeners.add(callback);
+  return () => listeners.delete(callback);
 }
 
-export function authenticate() {
-  window.localStorage.setItem(AUTH_STORAGE_KEY, "true");
-  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+export function refreshAuthSession() {
+  activeRequest ??= fetch("/api/auth/session", { cache: "no-store" })
+    .then(async (response) => {
+      snapshot = response.ok ? ((await response.json()) as AuthSession) : null;
+      listeners.forEach((listener) => listener());
+    })
+    .catch(() => {
+      snapshot = null;
+      listeners.forEach((listener) => listener());
+    })
+    .finally(() => { activeRequest = undefined; });
+  return activeRequest;
+}
+
+export function clearAuthSession() {
+  snapshot = null;
+  listeners.forEach((listener) => listener());
 }

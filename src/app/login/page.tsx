@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import { LoginActions } from "./login-actions";
 
 export default function LoginPage() {
@@ -30,11 +31,11 @@ export default function LoginPage() {
           Seu próximo caso clínico está esperando.
         </p>
 
-        <LoginActions />
+        <Suspense fallback={<p className="mt-8 text-center font-bold text-muted-foreground">Carregando login...</p>}><LoginActions /></Suspense>
 
         <p className="mt-7 text-center text-sm font-bold text-muted-foreground">
           Ainda não tem conta?{" "}
-          <Link href="/dashboard" className="text-primary hover:underline">Começar gratuitamente</Link>
+          <Link href="/registro" className="text-primary hover:underline">Começar gratuitamente</Link>
         </p>
       </section>
     </main>
