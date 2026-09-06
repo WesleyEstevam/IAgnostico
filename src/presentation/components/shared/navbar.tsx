@@ -75,6 +75,8 @@ export function Navbar() {
                   <p className="max-w-40 truncate text-xs font-extrabold">{isAuthenticated.user.displayName ?? "Jogador"}</p>
                   {isAuthenticated.user.email && <p className="max-w-40 truncate text-[11px] text-muted-foreground">{isAuthenticated.user.email}</p>}
                 </div>
+                <Link href="/evolucao" className="mt-1 block rounded-xl px-3 py-2 text-xs font-extrabold text-muted-foreground hover:bg-muted hover:text-foreground">Minha evolução</Link>
+                <Link href="/ranking" className="block rounded-xl px-3 py-2 text-xs font-extrabold text-muted-foreground hover:bg-muted hover:text-foreground">Ranking</Link>
                 <button type="button" onClick={logout} disabled={loggingOut} className="mt-1 w-full rounded-xl px-3 py-2 text-left text-xs font-extrabold text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-60">
                   {loggingOut ? "Saindo..." : "Sair"}
                 </button>

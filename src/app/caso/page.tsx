@@ -2,30 +2,118 @@
 
 import Link from "next/link";
 import { Navbar } from "@/presentation/components/shared/navbar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEmergencyAmbience } from "@/presentation/hooks/use-emergency-ambience";
+import { refreshAuthSession } from "@/presentation/auth/auth-store";
 
 type Msg = { who: "patient" | "you"; text: string };
-
-const CASE_DURATION_SECONDS = 8 * 60;
-
-const initialMsgs: Msg[] = [
-  { who: "patient", text: "Doutor(a), estou com uma falta de ar que começou de repente hoje cedo… 😟" },
-  { who: "you", text: "Há quanto tempo exatamente começou? Está associado a dor?" },
-  { who: "patient", text: "Faz umas 3 horas. Sinto uma pontada no lado direito do peito quando respiro fundo." },
-];
+type CaseResult = {
+  reason: "tempo" | "diagnostico";
+  evaluation: "correct" | "partial" | "incorrect";
+  correct: boolean;
+  xpEarned: number;
+  remainingSeconds: number;
+  feedback: string;
+};
+type ClinicalCase = {
+  id: string;
+  specialtyLabel: string;
+  difficulty: "facil" | "intermediario" | "dificil";
+  title: string;
+  setting: string;
+  summary: string;
+  patient: { name: string; age: number; avatar: string };
+  initialMessages: Msg[];
+  fallbackReply: string;
+  exams: Array<{ name: string; result: string; highlighted?: boolean }>;
+  durationSeconds: number;
+  remainingSeconds: number;
+  maxXp: number;
+};
 
 export default function CasePage() {
-  const [msgs, setMsgs] = useState<Msg[]>(initialMsgs);
+  const [clinicalCase, setClinicalCase] = useState<ClinicalCase>();
+  const [loadError, setLoadError] = useState<string>();
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [revealedExams, setRevealedExams] = useState<Set<string>>(() => new Set());
   const [input, setInput] = useState("");
   const [hypothesis, setHypothesis] = useState("");
-  const [secondsRemaining, setSecondsRemaining] = useState(CASE_DURATION_SECONDS);
+  const [secondsRemaining, setSecondsRemaining] = useState(0);
   const [finishedReason, setFinishedReason] = useState<"tempo" | "diagnostico" | null>(null);
+  const [result, setResult] = useState<CaseResult>();
+  const [savingResult, setSavingResult] = useState(false);
+  const [resultError, setResultError] = useState<string>();
+  const hypothesisRef = useRef(hypothesis);
+  const finishRef = useRef<(reason: "tempo" | "diagnostico") => void>(() => undefined);
+  const savingRef = useRef(false);
   const { playing, start, stop, toggle } = useEmergencyAmbience();
+
+  useEffect(() => {
+    const gameId = new URLSearchParams(window.location.search).get("partida");
+    const controller = new AbortController();
+    const load = async () => {
+      try {
+        if (!gameId) throw new Error("Esta partida não foi encontrada. Volte ao dashboard e inicie um novo plantão.");
+        const response = await fetch(`/api/games/${encodeURIComponent(gameId)}`, { signal: controller.signal });
+        const payload = (await response.json()) as ClinicalCase & { error?: string };
+        if (!response.ok) throw new Error(payload.error ?? "Não foi possível carregar o caso.");
+        setClinicalCase(payload);
+        setMsgs(payload.initialMessages);
+        setSecondsRemaining(payload.remainingSeconds);
+      } catch (error) {
+        if (!controller.signal.aborted) setLoadError(error instanceof Error ? error.message : "Não foi possível carregar o caso.");
+      }
+    };
+    void load();
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    hypothesisRef.current = hypothesis;
+  });
+
+  const persistResult = async (reason: "tempo" | "diagnostico") => {
+    if (savingRef.current || result) return;
+    const gameId = new URLSearchParams(window.location.search).get("partida");
+    savingRef.current = true;
+    setFinishedReason(reason);
+    setSavingResult(true);
+    setResultError(undefined);
+    stop();
+
+    if (!gameId) {
+      setResultError("Esta partida não foi encontrada. Volte ao dashboard e inicie um novo plantão.");
+      savingRef.current = false;
+      setSavingResult(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/games/finish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameId, hypothesis: hypothesisRef.current, reason }),
+      });
+      const payload = (await response.json()) as CaseResult & { error?: string };
+      if (!response.ok) throw new Error(payload.error ?? "Não foi possível salvar o resultado.");
+      setResult(payload);
+      setSecondsRemaining(payload.remainingSeconds);
+      await refreshAuthSession();
+    } catch (error) {
+      setResultError(error instanceof Error ? error.message : "Não foi possível salvar o resultado.");
+    } finally {
+      savingRef.current = false;
+      setSavingResult(false);
+    }
+  };
+
+  useEffect(() => {
+    finishRef.current = (reason) => { void persistResult(reason); };
+  });
 
   // Navegadores exigem um gesto do usuário para liberar áudio
   useEffect(() => {
-    if (finishedReason) return;
+    if (finishedReason || !clinicalCase) return;
 
     const kick = () => start();
     window.addEventListener("pointerdown", kick, { once: true });
@@ -34,40 +122,55 @@ export default function CasePage() {
       window.removeEventListener("pointerdown", kick);
       window.removeEventListener("keydown", kick);
     };
-  }, [finishedReason, start]);
+  }, [clinicalCase, finishedReason, start]);
 
   useEffect(() => {
-    if (finishedReason) return;
+    if (finishedReason || !clinicalCase) return;
 
-    const deadline = Date.now() + CASE_DURATION_SECONDS * 1000;
+    if (clinicalCase.remainingSeconds === 0) {
+      finishRef.current("tempo");
+      return;
+    }
+    const deadline = Date.now() + clinicalCase.remainingSeconds * 1000;
     const timer = window.setInterval(() => {
       const nextValue = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       setSecondsRemaining(nextValue);
 
       if (nextValue === 0) {
         window.clearInterval(timer);
-        stop();
-        setFinishedReason("tempo");
+        finishRef.current("tempo");
       }
     }, 250);
 
     return () => window.clearInterval(timer);
-  }, [finishedReason, stop]);
+  }, [clinicalCase, finishedReason]);
 
   const send = () => {
     if (!input.trim()) return;
-    setMsgs((m) => [...m, { who: "you", text: input }, { who: "patient", text: "Hmm… deixa eu pensar. Acho que sim, doutor." }]);
+    setMsgs((m) => [...m, { who: "you", text: input }, { who: "patient", text: clinicalCase?.fallbackReply ?? "Não sei informar." }]);
     setInput("");
   };
 
   const finishCase = () => {
-    stop();
-    setFinishedReason("diagnostico");
+    void persistResult("diagnostico");
   };
 
   const formattedTime = `${String(Math.floor(secondsRemaining / 60)).padStart(2, "0")}:${String(secondsRemaining % 60).padStart(2, "0")}`;
-  const correctDiagnosis = /tromboembolismo|embolia pulmonar|\btep\b/i.test(hypothesis);
-  const xpEarned = correctDiagnosis ? 200 : hypothesis.trim() ? 40 : 0;
+  const resultTime = result
+    ? `${String(Math.floor(result.remainingSeconds / 60)).padStart(2, "0")}:${String(result.remainingSeconds % 60).padStart(2, "0")}`
+    : formattedTime;
+
+  if (!clinicalCase) return <div className="min-h-screen bg-background">
+    <Navbar />
+    <main className="grid min-h-[calc(100svh-4rem)] place-items-center px-4">
+      <div className="card-pop max-w-md p-8 text-center">
+        <div className="text-5xl">{loadError ? "🩺" : "⏳"}</div>
+        <h1 className="mt-4 text-2xl font-extrabold">{loadError ? "Não foi possível abrir o caso" : "Preparando o caso clínico"}</h1>
+        <p className="mt-2 font-bold text-muted-foreground">{loadError ?? "Carregando os dados do paciente com segurança…"}</p>
+        {loadError && <Link href="/dashboard" className="btn-pop mt-6 bg-primary text-primary-foreground shadow-[var(--shadow-pop)]">Voltar ao dashboard</Link>}
+      </div>
+    </main>
+  </div>;
 
   return (
     <div className="min-h-screen bg-background">
@@ -77,11 +180,11 @@ export default function CasePage() {
         <div className="card-pop p-5 mb-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-2xl bg-info/15 grid place-items-center text-4xl">👩</div>
+              <div className="h-16 w-16 rounded-2xl bg-info/15 grid place-items-center text-4xl">{clinicalCase.patient.avatar}</div>
               <div>
-                <div className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">Caso #128 · Pneumologia · Emergência</div>
-                <h1 className="text-2xl font-extrabold tracking-tight">Mulher, 32 anos, dispneia súbita</h1>
-                <p className="text-sm text-muted-foreground font-bold">Sem comorbidades. Uso de ACO. Voo intercontinental há 2 dias.</p>
+                <div className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">{clinicalCase.specialtyLabel} · {clinicalCase.setting} · {clinicalCase.difficulty}</div>
+                <h1 className="text-2xl font-extrabold tracking-tight">{clinicalCase.title}</h1>
+                <p className="text-sm text-muted-foreground font-bold">{clinicalCase.summary}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -105,7 +208,7 @@ export default function CasePage() {
               >
                 ⏱ {formattedTime}
               </div>
-              <div className="rounded-full bg-xp/20 text-xp-foreground px-3 py-1.5 text-xs font-extrabold">★ +200 XP</div>
+              <div className="rounded-full bg-xp/20 text-xp-foreground px-3 py-1.5 text-xs font-extrabold">★ +{clinicalCase.maxXp} XP</div>
             </div>
           </div>
         </div>
@@ -116,7 +219,7 @@ export default function CasePage() {
             <div className="px-5 py-3 border-b-2 border-border flex items-center gap-3 bg-muted/40">
               <div className="h-9 w-9 rounded-full bg-info grid place-items-center text-info-foreground font-extrabold">P</div>
               <div>
-                <div className="font-extrabold text-sm">Paciente · Ana, 32</div>
+                <div className="font-extrabold text-sm">Paciente · {clinicalCase.patient.name}, {clinicalCase.patient.age}</div>
                 <div className="text-[11px] text-primary font-bold">● online · respondendo</div>
               </div>
             </div>
@@ -150,21 +253,16 @@ export default function CasePage() {
             <div className="card-pop p-5">
               <h3 className="font-extrabold mb-3 flex items-center gap-2">🧪 Solicitar exames</h3>
               <div className="grid grid-cols-2 gap-2">
-                {[
-                  { n: "Hemograma", c: "info" },
-                  { n: "D-dímero", c: "primary", hot: true },
-                  { n: "Rx tórax", c: "info" },
-                  { n: "Angio-TC", c: "primary" },
-                  { n: "Gasometria", c: "info" },
-                  { n: "ECG", c: "info" },
-                ].map((x, i) => (
-                  <button key={i} className={`relative rounded-xl border-2 border-border bg-card px-3 py-2.5 text-xs font-extrabold hover:border-primary hover:bg-accent transition-colors`}>
-                    {x.hot && <span className="absolute -top-1.5 -right-1.5 h-3 w-3 rounded-full bg-streak animate-pulse" />}
-                    {x.n}
+                {clinicalCase.exams.map((exam) => (
+                  <button key={exam.name} type="button" onClick={() => setRevealedExams((current) => new Set(current).add(exam.name))} className="relative rounded-xl border-2 border-border bg-card px-3 py-2.5 text-xs font-extrabold transition-colors hover:border-primary hover:bg-accent">
+                    {exam.highlighted && !revealedExams.has(exam.name) && <span className="absolute -right-1.5 -top-1.5 h-3 w-3 animate-pulse rounded-full bg-streak" />}
+                    {exam.name}
                   </button>
                 ))}
               </div>
-              <button className="mt-3 w-full text-xs font-extrabold text-info">+ Adicionar outros</button>
+              {revealedExams.size > 0 && <div className="mt-3 space-y-2 border-t border-border pt-3">
+                {clinicalCase.exams.filter((exam) => revealedExams.has(exam.name)).map((exam) => <p key={exam.name} className="rounded-xl bg-muted p-3 text-xs font-bold"><span className="text-info">{exam.name}:</span> {exam.result}</p>)}
+              </div>}
             </div>
 
             {/* Hypothesis */}
@@ -174,16 +272,18 @@ export default function CasePage() {
                 value={hypothesis}
                 onChange={(e) => setHypothesis(e.target.value)}
                 rows={4}
-                placeholder="Ex: Tromboembolismo pulmonar pós-voo, em uso de ACO…"
+                placeholder="Digite sua principal hipótese diagnóstica…"
                 className="w-full rounded-xl border-2 border-border bg-muted/30 p-3 text-sm font-medium focus:outline-none focus:border-primary"
               />
               <button
                 type="button"
                 onClick={finishCase}
+                disabled={savingResult || Boolean(result)}
                 className="mt-3 btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)] text-sm"
               >
-                Enviar diagnóstico
+                {savingResult ? "Salvando resultado..." : resultError ? "Tentar salvar novamente" : "Enviar diagnóstico"}
               </button>
+              {resultError && <p role="alert" className="mt-3 text-sm font-bold text-destructive">{resultError}</p>}
             </div>
 
             <Link href="/dashboard" className="block text-center text-sm font-extrabold text-muted-foreground hover:text-foreground">
@@ -193,7 +293,7 @@ export default function CasePage() {
         </div>
       </main>
 
-      {finishedReason && (
+      {result && (
         <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-foreground/70 p-4 backdrop-blur-md">
           <section
             className="card-pop animate-bounce-in w-full max-w-2xl overflow-hidden border-0 bg-card shadow-2xl"
@@ -201,17 +301,22 @@ export default function CasePage() {
             aria-modal="true"
             aria-labelledby="result-title"
           >
-            <div className={`p-7 text-center sm:p-9 ${correctDiagnosis ? "bg-primary text-primary-foreground" : "bg-streak text-white"}`}>
+            <div className={`p-7 text-center text-white sm:p-9 ${result.evaluation === "correct" ? "bg-primary" : result.evaluation === "partial" ? "bg-info" : "bg-streak"}`}>
               <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-white/20 text-4xl">
-                {correctDiagnosis ? "✓" : finishedReason === "tempo" ? "⏱" : "🧠"}
+                {result.evaluation === "correct" ? "✓" : result.evaluation === "partial" ? "🎯" : result.reason === "tempo" ? "⏱" : "🧠"}
               </div>
-              <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.2em] text-white/80">
-                Caso encerrado
-              </p>
+              <div className="mt-5 flex justify-center">
+                <span className="inline-flex items-center gap-2 rounded-full border-2 border-white/35 bg-white/20 px-5 py-2 text-sm font-extrabold uppercase tracking-[0.16em] shadow-lg backdrop-blur-sm">
+                  <span aria-hidden="true">{result.evaluation === "correct" ? "✓" : result.evaluation === "partial" ? "◐" : "✕"}</span>
+                  {result.evaluation === "correct" ? "Resposta correta" : result.evaluation === "partial" ? "Chegou perto" : "Resposta incorreta"}
+                </span>
+              </div>
               <h2 id="result-title" className="mt-2 text-3xl font-extrabold sm:text-4xl">
-                {correctDiagnosis
+                {result.evaluation === "correct"
                   ? "Diagnóstico correto!"
-                  : finishedReason === "tempo"
+                  : result.evaluation === "partial"
+                    ? "Você chegou perto!"
+                  : result.reason === "tempo"
                     ? "O tempo acabou"
                     : "Vamos revisar o caso"}
               </h2>
@@ -220,11 +325,11 @@ export default function CasePage() {
             <div className="p-6 sm:p-8">
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-xp/15 p-4 text-center">
-                  <div className="text-2xl font-extrabold text-xp-foreground">★ +{xpEarned}</div>
+                  <div className="text-2xl font-extrabold text-xp-foreground">★ +{result.xpEarned}</div>
                   <div className="mt-1 text-xs font-bold uppercase text-muted-foreground">XP ganho</div>
                 </div>
                 <div className="rounded-2xl bg-info/10 p-4 text-center">
-                  <div className="text-2xl font-extrabold text-info">{formattedTime}</div>
+                  <div className="text-2xl font-extrabold text-info">{resultTime}</div>
                   <div className="mt-1 text-xs font-bold uppercase text-muted-foreground">Tempo restante</div>
                 </div>
               </div>
@@ -235,11 +340,7 @@ export default function CasePage() {
                   Feedback do caso
                 </h3>
                 <p className="mt-3 text-sm font-medium leading-relaxed text-muted-foreground">
-                  {correctDiagnosis
-                    ? "Excelente. A dispneia súbita, a dor pleurítica, o uso de anticoncepcional e o voo recente sustentam tromboembolismo pulmonar como hipótese principal."
-                    : hypothesis.trim()
-                      ? "A hipótese principal era tromboembolismo pulmonar. Os principais indícios eram dispneia súbita, dor pleurítica, uso de anticoncepcional e imobilidade associada ao voo recente."
-                      : "Você não enviou uma hipótese antes do encerramento. Neste caso, os fatores de risco e a apresentação súbita apontavam para tromboembolismo pulmonar."}
+                  {result.feedback}
                 </p>
               </div>
 

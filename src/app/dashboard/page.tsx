@@ -2,8 +2,15 @@ import Link from "next/link";
 import { Navbar } from "@/presentation/components/shared/navbar";
 import { Stat } from "@/presentation/components/shared/stat";
 import { CardDealSound } from "@/presentation/components/sound/card-deal-sound";
+import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
+import { getPlayerProgress } from "@/core/player/player-progress-service";
+import { redirect } from "next/navigation";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const user = await getCurrentFirebaseUser();
+  if (!user) redirect("/login");
+  const { stats } = await getPlayerProgress(user.uid);
+  const number = new Intl.NumberFormat("pt-BR");
   return (
     <div className="min-h-screen bg-background">
       <CardDealSound />
@@ -11,10 +18,10 @@ export default function Dashboard() {
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
         {/* Top stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger">
-          <Stat tone="streak" icon={<span className="text-xl">🔥</span>} label="Streak" value="12 dias" />
-          <Stat tone="xp" icon={<span className="text-xl">★</span>} label="XP total" value="2.840" />
-          <Stat tone="info" icon={<span className="text-xl">🏅</span>} label="Nível" value="14 · Diagnosta" />
-          <Stat icon={<span className="text-xl">🎯</span>} label="Acerto médio" value="87%" />
+          <Stat tone="streak" icon={<span className="text-xl">🔥</span>} label="Streak" value={`${stats.streak} ${stats.streak === 1 ? "dia" : "dias"}`} />
+          <Stat tone="xp" icon={<span className="text-xl">★</span>} label="XP total" value={number.format(stats.xp)} />
+          <Stat tone="info" icon={<span className="text-xl">🏅</span>} label="Nível" value={number.format(stats.level)} />
+          <Stat icon={<span className="text-xl">🎯</span>} label="Acerto médio" value={`${stats.averageAccuracy}%`} />
         </div>
 
         <div className="fixed left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">

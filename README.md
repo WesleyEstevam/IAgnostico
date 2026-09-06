@@ -24,11 +24,24 @@ src/
 
 A autenticação usa Firebase no navegador apenas para obter o ID token. O servidor o troca por um cookie de sessão `httpOnly` e cria o perfil privado com 3 plantões gratuitos. O fluxo inclui login social/e-mail, verificação de e-mail, recuperação de senha e logout. As áreas privadas validam a sessão no servidor; pontuação, tempo, gabarito, plantões e ranking permanecem sob autoridade do servidor.
 
+### Plantões gratuitos
+
+- Cada jogador do plano gratuito possui no máximo 3 plantões.
+- O saldo é restaurado para `3/3` diariamente às `00:00` no fuso `America/Bahia`.
+- A recarga é aplicada pelo servidor no primeiro acesso após a virada do dia, sem depender de tarefa agendada.
+- O consumo e a criação da partida acontecem em uma transação idempotente do Firestore quando a contagem anuncia o início do plantão.
+- O encerramento por diagnóstico ou tempo é validado pelo servidor, que calcula o tempo restante, corrige a resposta, concede XP e atualiza as estatísticas em uma única transação.
+- O streak usa o calendário de `America/Bahia`: o primeiro caso concluído no dia inicia ou mantém a sequência, um caso no dia seguinte incrementa `+1` e um dia perdido reinicia a sequência.
+- O ranking lê somente `playerProfiles`, uma projeção pública sem e-mail ou saldo de plantões, atualizada pelo servidor durante o login e a conclusão dos casos.
+- A correção diagnóstica possui três níveis: correto (100% do XP), chegou perto (50%) e incorreto (20% quando uma hipótese foi enviada). Os aliases de resposta parcial são configurados individualmente por arquétipo clínico.
+
 ## Configuração do Firebase
 
 1. Copie `.env.example` para `.env.local` e preencha a configuração do app Web e da conta de serviço.
 2. No Firebase Authentication, habilite E-mail/senha e os provedores sociais desejados.
 3. Crie o banco Cloud Firestore e publique `firestore.rules` antes de usar dados reais.
+4. Publique também `firestore.indexes.json`; o índice de partidas por usuário e data é necessário para o histórico e os gráficos de evolução.
+5. Execute `npm run seed:cases` uma vez para publicar o catálogo MVP com 85 casos clínicos. O comando é idempotente e pode ser repetido sem criar duplicatas.
 
 Nunca versione `.env.local` ou o JSON da conta de serviço.
 

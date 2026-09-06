@@ -244,6 +244,14 @@
   }
   30% { transform: translateY(1px) scale(0.97) }
 }
+@keyframes amimir-bubble-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg) }
+  50% { transform: translateY(-5px) rotate(1deg) }
+}
+@keyframes sleep-z-float {
+  0%, 100% { transform: translate(0, 2px) rotate(-1deg) }
+  50% { transform: translate(5px, -7px) rotate(2deg) }
+}
 
 .animate-float { animation: float-slow 5s ease-in-out infinite }
 .animate-pop-in { animation: pop-in 0.5s cubic-bezier(.34,1.56,.64,1) both }
@@ -252,6 +260,14 @@
 .animate-pop-badge { animation: pop-badge 1.8s ease-in-out infinite }
 .animate-glow-pulse { animation: glow-pulse 2.2s ease-out infinite }
 .animate-tick { animation: tick-up 1.6s ease-in-out infinite }
+.amimir-bubble-layer {
+  animation: amimir-bubble-float 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+.amimir-z-layer {
+  animation: sleep-z-float 2.6s ease-in-out infinite;
+  will-change: transform;
+}
 .shift-wave > * {
   animation: shift-wave 2.4s cubic-bezier(.34, 1.56, .64, 1) infinite;
   will-change: transform;

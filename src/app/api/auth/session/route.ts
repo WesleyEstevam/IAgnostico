@@ -8,6 +8,7 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_DURATION_MS,
 } from "@/shared/constants/auth";
+import { FREE_PLAN_MAX_SHIFTS, getRefreshedShiftBalance, getShiftDateKey } from "@/core/shifts/shift-service";
 
 const sessionSchema = z.object({ idToken: z.string().min(1) });
 
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
     const userRecord = await adminAuth.getUser(decodedToken.uid);
     const firestore = getFirebaseAdminFirestore();
     const userRef = firestore.collection("users").doc(decodedToken.uid);
+    const playerProfileRef = firestore.collection("playerProfiles").doc(decodedToken.uid);
     await firestore.runTransaction(async (transaction) => {
       const userSnapshot = await transaction.get(userRef);
       const identity = {
@@ -43,18 +45,44 @@ export async function POST(request: NextRequest) {
         updatedAt: FieldValue.serverTimestamp(),
       };
 
+      const initialStats = {
+        xp: 0,
+        level: 1,
+        streak: 0,
+        lastActivityDate: null,
+        casesPlayed: 0,
+        correctAnswers: 0,
+        partialAnswers: 0,
+        averageAccuracy: 0,
+      };
+      const stats = userSnapshot.data()?.stats ?? initialStats;
+
       if (userSnapshot.exists) {
         transaction.update(userRef, identity);
-        return;
+      } else {
+        transaction.create(userRef, {
+          ...identity,
+          plan: "free",
+          shifts: {
+            current: FREE_PLAN_MAX_SHIFTS,
+            max: FREE_PLAN_MAX_SHIFTS,
+            lastRefillDate: getShiftDateKey(),
+          },
+          stats: initialStats,
+          createdAt: FieldValue.serverTimestamp(),
+        });
       }
 
-      transaction.create(userRef, {
-        ...identity,
-        plan: "free",
-        shifts: { current: 3, max: 3 },
-        stats: { xp: 0, level: 1, streak: 0, averageAccuracy: 0 },
-        createdAt: FieldValue.serverTimestamp(),
-      });
+      transaction.set(playerProfileRef, {
+        displayName: identity.displayName,
+        photoURL: identity.photoURL,
+        xp: typeof stats.xp === "number" ? stats.xp : 0,
+        level: typeof stats.level === "number" ? stats.level : 1,
+        streak: typeof stats.streak === "number" ? stats.streak : 0,
+        casesPlayed: typeof stats.casesPlayed === "number" ? stats.casesPlayed : 0,
+        averageAccuracy: typeof stats.averageAccuracy === "number" ? stats.averageAccuracy : 0,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
     });
 
     const sessionCookie = await adminAuth.createSessionCookie(idToken, {
@@ -79,8 +107,7 @@ export async function GET() {
   const user = await getCurrentFirebaseUser();
   if (!user) return NextResponse.json({ authenticated: false }, { status: 401 });
 
-  const profile = await getFirebaseAdminFirestore().collection("users").doc(user.uid).get();
-  const shifts = profile.data()?.shifts ?? { current: 3, max: 3 };
+  const shifts = await getRefreshedShiftBalance(user.uid);
 
   return NextResponse.json({
     authenticated: true,
