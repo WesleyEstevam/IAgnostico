@@ -99,7 +99,14 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Falha ao criar sessão do Firebase", error);
-    return NextResponse.json({ error: "Não foi possível iniciar sua sessão." }, { status: 401 });
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("Firebase Admin não configurado")) {
+      return NextResponse.json({ error: "Firebase Admin não configurado no servidor. Verifique as variáveis FIREBASE_ADMIN_* na Vercel." }, { status: 500 });
+    }
+    if (/private key|PEM|credential/i.test(message)) {
+      return NextResponse.json({ error: "A credencial do Firebase Admin na Vercel é inválida. Verifique FIREBASE_ADMIN_PRIVATE_KEY e FIREBASE_ADMIN_CLIENT_EMAIL." }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Não foi possível validar sua autenticação no servidor." }, { status: 401 });
   }
 }
 

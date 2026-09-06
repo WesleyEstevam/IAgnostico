@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 import { GoogleAuthProvider, OAuthProvider, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup, signOut, type UserCredential } from "firebase/auth";
 import { getFirebaseAuth } from "@/infrastructure/firebase/client";
 import { refreshAuthSession } from "@/presentation/auth/auth-store";
+import { apiResponseError, readApiResponse } from "@/presentation/http/read-api-response";
 
 function readableAuthError(error: unknown) {
   const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
@@ -31,8 +32,9 @@ export function LoginActions() {
     }
     const idToken = await credential.user.getIdToken();
     const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
-    const payload = (await response.json()) as { error?: string };
-    if (!response.ok) throw new Error(payload.error ?? "Não foi possível iniciar sua sessão.");
+    const payload = await readApiResponse<{ error: string }>(response);
+    if (!response.ok) throw apiResponseError(response, payload.error);
+    if (!Object.keys(payload).length) throw new Error("O servidor não confirmou a criação da sessão. Consulte os logs da função /api/auth/session na Vercel.");
     await signOut(await getFirebaseAuth());
     await refreshAuthSession();
     const destination = searchParams.get("next");

@@ -15,7 +15,7 @@ export function getFirebaseAdminConfig() {
   });
 
   if (!parsed.success) {
-    throw new Error("Firebase Admin não configurado. Preencha as variáveis FIREBASE_ADMIN_* em .env.local.");
+    throw new Error("Firebase Admin não configurado. Preencha as variáveis FIREBASE_ADMIN_* no ambiente do servidor.");
   }
 
   return parsed.data;
