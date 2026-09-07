@@ -41,10 +41,9 @@ export function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         {isAuthenticated && (
-          <Link
-            href="/dashboard"
+          <div
             aria-label={`${isAuthenticated.shifts.current} de ${isAuthenticated.shifts.max} plantões disponíveis`}
-            className="flex items-center gap-2 rounded-2xl border-2 border-primary/25 bg-primary/10 px-2 py-2 text-primary transition-transform hover:-translate-y-0.5 sm:px-3"
+            className="flex items-center gap-2 rounded-2xl border-2 border-primary/25 bg-primary/10 px-2 py-2 text-primary sm:px-3"
           >
             <span className="hidden text-xs font-extrabold uppercase tracking-wide lg:inline">
               Plantões
@@ -64,7 +63,7 @@ export function Navbar() {
             <span className="text-xs font-extrabold">
               {isAuthenticated.shifts.current}/{isAuthenticated.shifts.max}
             </span>
-          </Link>
+          </div>
         )}
         {!isAuthenticated && <span className="w-24" aria-hidden="true" />}
         <Logo className="absolute left-1/2 -translate-x-1/2 max-sm:[&_img]:h-9" />
@@ -91,14 +90,6 @@ export function Navbar() {
                 <span className="hidden max-w-28 truncate text-xs font-extrabold sm:block">
                   {isAuthenticated.user.displayName ?? isAuthenticated.user.email ?? "Jogador"}
                 </span>
-                {!isAuthenticated.user.emailVerified && (
-                  <span
-                    title="E-mail não verificado"
-                    className="hidden text-xs text-streak sm:inline"
-                  >
-                    ●
-                  </span>
-                )}
                 <span
                   aria-hidden="true"
                   className="hidden text-[10px] text-muted-foreground transition-transform group-open:rotate-180 sm:inline"

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { createUserWithEmailAndPassword, sendEmailVerification, signOut, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut, updateProfile } from "firebase/auth";
 import { getFirebaseAuth } from "@/infrastructure/firebase/client";
 import { refreshAuthSession } from "@/presentation/auth/auth-store";
 import { apiResponseError, readApiResponse } from "@/presentation/http/read-api-response";
@@ -25,11 +25,6 @@ export function RegisterForm() {
       const auth = await getFirebaseAuth();
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(credential.user, { displayName: name });
-      try {
-        await sendEmailVerification(credential.user, { url: `${window.location.origin}/login?verified=1` });
-      } catch (verificationError) {
-        console.error("Não foi possível enviar a verificação de e-mail", verificationError);
-      }
       const idToken = await credential.user.getIdToken(true);
       const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
       const payload = await readApiResponse<{ error: string }>(response);

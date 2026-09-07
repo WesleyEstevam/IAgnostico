@@ -1,4 +1,5 @@
 export type CaseSpecialty = "cardiologia" | "clinica-geral" | "infectologia";
+export const MAX_PATIENT_CHAT_MESSAGES = 10;
 
 export type ClinicalCaseDocument = {
   schemaVersion: 1;
@@ -26,4 +27,6 @@ export type PublicClinicalCase = Omit<ClinicalCaseDocument, "diagnosis" | "diagn
   specialtyLabel: string;
   requestedSpecialty: CaseSpecialty | "aleatorio";
   remainingSeconds: number;
+  chatMessages: Array<{ who: "patient" | "you"; text: string }>;
+  remainingChatMessages: number;
 };

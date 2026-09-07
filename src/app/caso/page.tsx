@@ -32,6 +32,8 @@ type ClinicalCase = {
   remainingSeconds: number;
   maxXp: number;
   sourceRefs: string[];
+  chatMessages: Msg[];
+  remainingChatMessages: number;
 };
 
 export default function CasePage() {
@@ -40,6 +42,9 @@ export default function CasePage() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [revealedExams, setRevealedExams] = useState<Set<string>>(() => new Set());
   const [input, setInput] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [chatError, setChatError] = useState<string>();
+  const [remainingChatMessages, setRemainingChatMessages] = useState(10);
   const [hypothesis, setHypothesis] = useState("");
   const [secondsRemaining, setSecondsRemaining] = useState(0);
   const [finishedReason, setFinishedReason] = useState<"tempo" | "diagnostico" | null>(null);
@@ -49,6 +54,7 @@ export default function CasePage() {
   const hypothesisRef = useRef(hypothesis);
   const finishRef = useRef<(reason: "tempo" | "diagnostico") => void>(() => undefined);
   const savingRef = useRef(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const { playing, start, stop, toggle } = useEmergencyAmbience();
 
   useEffect(() => {
@@ -61,7 +67,8 @@ export default function CasePage() {
         const payload = (await response.json()) as ClinicalCase & { error?: string };
         if (!response.ok) throw new Error(payload.error ?? "Não foi possível carregar o caso.");
         setClinicalCase(payload);
-        setMsgs(payload.initialMessages);
+        setMsgs([...payload.initialMessages, ...payload.chatMessages]);
+        setRemainingChatMessages(payload.remainingChatMessages);
         setSecondsRemaining(payload.remainingSeconds);
       } catch (error) {
         if (!controller.signal.aborted) setLoadError(error instanceof Error ? error.message : "Não foi possível carregar o caso.");
@@ -74,6 +81,10 @@ export default function CasePage() {
   useEffect(() => {
     hypothesisRef.current = hypothesis;
   });
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [msgs, sendingMessage]);
 
   const persistResult = async (reason: "tempo" | "diagnostico") => {
     if (savingRef.current || result) return;
@@ -148,10 +159,32 @@ export default function CasePage() {
     return () => window.clearInterval(timer);
   }, [clinicalCase, finishedReason]);
 
-  const send = () => {
-    if (!input.trim()) return;
-    setMsgs((m) => [...m, { who: "you", text: input }, { who: "patient", text: clinicalCase?.fallbackReply ?? "Não sei informar." }]);
+  const send = async () => {
+    const message = input.trim();
+    if (!message || sendingMessage || finishedReason || remainingChatMessages <= 0) return;
+    const gameId = new URLSearchParams(window.location.search).get("partida");
+    if (!gameId) return;
+
     setInput("");
+    setChatError(undefined);
+    setSendingMessage(true);
+    setMsgs((current) => [...current, { who: "you", text: message }]);
+
+    try {
+      const response = await fetch(`/api/games/${encodeURIComponent(gameId)}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      const payload = (await response.json()) as { reply?: string; remainingMessages?: number; error?: string };
+      if (!response.ok || !payload.reply) throw new Error(payload.error ?? "O paciente não conseguiu responder agora.");
+      setMsgs((current) => [...current, { who: "patient", text: payload.reply! }]);
+      if (typeof payload.remainingMessages === "number") setRemainingChatMessages(payload.remainingMessages);
+    } catch (error) {
+      setChatError(error instanceof Error ? error.message : "O paciente não conseguiu responder agora.");
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   const finishCase = () => {
@@ -223,7 +256,9 @@ export default function CasePage() {
               <div className="h-9 w-9 rounded-full bg-info grid place-items-center text-info-foreground font-extrabold">P</div>
               <div>
                 <div className="font-extrabold text-sm">Paciente · {clinicalCase.patient.name}, {clinicalCase.patient.age}</div>
-                <div className="text-[11px] text-primary font-bold">● online · respondendo</div>
+                <div className="text-[11px] text-primary font-bold">
+                  ● online · {sendingMessage ? "digitando…" : `${remainingChatMessages} perguntas disponíveis`}
+                </div>
               </div>
             </div>
 
@@ -236,17 +271,36 @@ export default function CasePage() {
                   </div>
                 </div>
               ))}
+              {sendingMessage && (
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-info grid place-items-center text-xs text-info-foreground font-extrabold">P</div>
+                  <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-2.5 text-sm font-bold text-muted-foreground animate-pulse">Digitando…</div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
             </div>
 
-            <div className="p-3 border-t-2 border-border bg-card flex gap-2">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && send()}
-                placeholder="Pergunte ao paciente…"
-                className="flex-1 rounded-2xl border-2 border-border bg-muted/30 px-4 py-3 text-sm font-medium focus:outline-none focus:border-primary"
-              />
-              <button onClick={send} className="btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)] text-sm">Enviar</button>
+            <div className="border-t-2 border-border bg-card p-3">
+              {chatError && <p role="alert" className="mb-2 text-xs font-bold text-destructive">{chatError}</p>}
+              <div className="flex gap-2">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                      e.preventDefault();
+                      void send();
+                    }
+                  }}
+                  maxLength={500}
+                  disabled={sendingMessage || Boolean(finishedReason) || remainingChatMessages <= 0}
+                  placeholder={remainingChatMessages > 0 ? "Pergunte ao paciente…" : "Limite de perguntas atingido"}
+                  className="flex-1 rounded-2xl border-2 border-border bg-muted/30 px-4 py-3 text-sm font-medium focus:outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+                />
+                <button type="button" disabled={sendingMessage || !input.trim() || Boolean(finishedReason) || remainingChatMessages <= 0} onClick={() => void send()} className="btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)] text-sm disabled:cursor-not-allowed disabled:opacity-60">
+                  {sendingMessage ? "Enviando…" : "Enviar"}
+                </button>
+              </div>
             </div>
           </div>
 

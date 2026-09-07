@@ -2,7 +2,7 @@ import "server-only";
 
 import { Timestamp } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
-import type { CaseSpecialty, ClinicalCaseDocument, PublicClinicalCase } from "./clinical-case-types";
+import { MAX_PATIENT_CHAT_MESSAGES, type CaseSpecialty, type ClinicalCaseDocument, type PublicClinicalCase } from "./clinical-case-types";
 
 const specialtyLabels: Record<CaseSpecialty, string> = {
   cardiologia: "Cardiologia",
@@ -63,6 +63,20 @@ export async function getPublicGameCase(uid: string, gameId: string): Promise<Pu
   const startedAt = game.startedAt instanceof Timestamp ? game.startedAt.toMillis() : Date.now();
   const elapsedSeconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
   const remainingSeconds = Math.max(0, clinicalCase.durationSeconds - elapsedSeconds);
+  const chatMessages = Array.isArray(game.chatMessages)
+    ? game.chatMessages
+        .filter(
+          (message: unknown): message is { who: "patient" | "you"; text: string } =>
+            typeof message === "object" &&
+            message !== null &&
+            "who" in message &&
+            (message.who === "patient" || message.who === "you") &&
+            "text" in message &&
+            typeof message.text === "string",
+        )
+        .map(({ who, text }: { who: "patient" | "you"; text: string }) => ({ who, text }))
+    : [];
+  const chatMessageCount = typeof game.chatMessageCount === "number" ? game.chatMessageCount : 0;
 
   return {
     id: caseSnapshot.id,
@@ -81,6 +95,8 @@ export async function getPublicGameCase(uid: string, gameId: string): Promise<Pu
     maxXp: clinicalCase.maxXp,
     sourceRefs: clinicalCase.sourceRefs.filter((source) => /^https?:\/\//i.test(source)),
     remainingSeconds,
+    chatMessages,
+    remainingChatMessages: Math.max(0, MAX_PATIENT_CHAT_MESSAGES - chatMessageCount),
   };
 }
 

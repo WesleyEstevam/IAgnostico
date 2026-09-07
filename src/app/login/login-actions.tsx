@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { GoogleAuthProvider, OAuthProvider, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup, signOut, type UserCredential } from "firebase/auth";
+import { GoogleAuthProvider, OAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut, type UserCredential } from "firebase/auth";
 import { getFirebaseAuth } from "@/infrastructure/firebase/client";
 import { refreshAuthSession } from "@/presentation/auth/auth-store";
 import { apiResponseError, readApiResponse } from "@/presentation/http/read-api-response";
@@ -23,13 +23,6 @@ export function LoginActions() {
   const [errorMessage, setErrorMessage] = useState<string>();
 
   const finishAuthentication = async (credential: UserCredential) => {
-    if (credential.providerId === "password" && !credential.user.emailVerified) {
-      try {
-        await sendEmailVerification(credential.user, { url: `${window.location.origin}/login?verified=1` });
-      } catch (verificationError) {
-        console.error("Não foi possível reenviar a verificação de e-mail", verificationError);
-      }
-    }
     const idToken = await credential.user.getIdToken();
     const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
     const payload = await readApiResponse<{ error: string }>(response);
@@ -64,7 +57,6 @@ export function LoginActions() {
 
   return <>
     {searchParams.get("reset") === "sent" && <p role="status" className="mt-6 rounded-xl bg-primary/10 px-4 py-3 text-sm font-bold text-primary">Enviamos as instruções para redefinir sua senha.</p>}
-    {searchParams.get("verified") === "1" && <p role="status" className="mt-6 rounded-xl bg-primary/10 px-4 py-3 text-sm font-bold text-primary">E-mail verificado. Agora você pode entrar normalmente.</p>}
     <div className="mt-8 grid gap-3">
       <button type="button" disabled={pending} onClick={() => socialLogin(new GoogleAuthProvider())} className="btn-pop w-full border-2 border-border bg-card text-foreground shadow-[var(--shadow-pop-muted)] disabled:opacity-60"><span className="mr-3 text-lg font-extrabold text-info">G</span>Continuar com Google</button>
       <button type="button" disabled={pending} onClick={() => socialLogin(new OAuthProvider("apple.com"))} className="btn-pop w-full border-2 border-border bg-card text-foreground shadow-[var(--shadow-pop-muted)] disabled:opacity-60"><span className="mr-3 text-xl">●</span>Continuar com Apple</button>
