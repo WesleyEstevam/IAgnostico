@@ -66,13 +66,25 @@ export default function Landing() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="h-8 w-8 rounded-full bg-streak/20 grid place-items-center text-streak font-extrabold">
-                      🔥
+                      <Image
+                        src="/dashboard-streak-3d.png"
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 object-contain"
+                      />
                     </div>
                     <span className="font-extrabold">12</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-8 w-8 rounded-full bg-xp/20 grid place-items-center text-xp-foreground font-extrabold">
-                      ★
+                      <Image
+                        src="/dashboard-xp-3d.png"
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 object-contain"
+                      />
                     </div>
                     <span className="font-extrabold">2.840 XP</span>
                   </div>
@@ -117,14 +129,26 @@ export default function Landing() {
               className="absolute -left-6 top-20 card-pop p-3 animate-float"
               style={{ animationDelay: "0.5s" }}
             >
-              <div className="text-2xl animate-wiggle">🏆</div>
+              <Image
+                src="/landing-trophy-3d.png"
+                alt=""
+                width={32}
+                height={32}
+                className="mx-auto h-8 w-8 animate-wiggle object-contain"
+              />
               <div className="text-[10px] font-extrabold uppercase">+50 XP</div>
             </div>
             <div
               className="absolute -right-4 bottom-20 card-pop p-3 animate-float"
               style={{ animationDelay: "1.5s" }}
             >
-              <div className="text-2xl animate-wiggle">🩺</div>
+              <Image
+                src="/landing-stethoscope-3d.png"
+                alt=""
+                width={32}
+                height={32}
+                className="mx-auto h-8 w-8 animate-wiggle object-contain"
+              />
               <div className="text-[10px] font-extrabold uppercase">Nível 14</div>
             </div>
           </div>
@@ -148,19 +172,19 @@ export default function Landing() {
         <div className="mt-12 grid md:grid-cols-3 gap-5 stagger">
           {[
             {
-              emoji: "💬",
+              icon: "/landing-chat-3d.png",
               title: "Converse com o paciente",
               desc: "Anamnese guiada por IA, em linguagem natural. O paciente reage ao seu raciocínio.",
               tone: "info",
             },
             {
-              emoji: "🧪",
+              icon: "/landing-exam-3d.png",
               title: "Solicite exames",
               desc: "Escolha entre laboratoriais e imagens. Cada pedido importa no seu score final.",
               tone: "primary",
             },
             {
-              emoji: "🎯",
+              icon: "/dashboard-accuracy-3d.png",
               title: "Formule a hipótese",
               desc: "Receba feedback inteligente, com explicação clínica e referências.",
               tone: "xp",
@@ -170,7 +194,13 @@ export default function Landing() {
               <div
                 className={`h-14 w-14 rounded-2xl grid place-items-center text-3xl animate-wiggle ${f.tone === "info" ? "bg-info/15" : f.tone === "xp" ? "bg-xp/20" : "bg-accent"}`}
               >
-                {f.emoji}
+                <Image
+                  src={f.icon}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 object-contain"
+                />
               </div>
               <h3 className="mt-4 text-xl font-extrabold">{f.title}</h3>
               <p className="mt-2 text-muted-foreground text-sm">{f.desc}</p>
@@ -195,26 +225,58 @@ export default function Landing() {
             </p>
             <ul className="mt-6 space-y-3">
               {[
-                "🔥 Streaks diários que viciam",
-                "⭐ XP por raciocínio correto",
-                "🏅 Conquistas por especialidade",
-                "📈 Curva de evolução visual",
+                { icon: "/dashboard-streak-3d.png", text: "Streaks diários que viciam" },
+                { icon: "/dashboard-xp-3d.png", text: "XP por raciocínio correto" },
+                { icon: "/dashboard-level-3d.png", text: "Conquistas por especialidade" },
+                { icon: "/landing-progress-3d.png", text: "Curva de evolução visual" },
               ].map((s, i) => (
                 <li key={i} className="flex items-center gap-3 font-bold">
-                  {s}
+                  <Image
+                    src={s.icon}
+                    alt=""
+                    width={30}
+                    height={30}
+                    className="h-[30px] w-[30px] object-contain"
+                  />
+                  {s.text}
                 </li>
               ))}
             </ul>
           </div>
           <div className="grid grid-cols-2 gap-4 stagger">
             {[
-              { v: "🔥 12", l: "Dias de streak", bg: "bg-streak/15", c: "text-streak" },
-              { v: "★ 2.840", l: "XP total", bg: "bg-xp/20", c: "text-xp-foreground" },
+              {
+                v: "12",
+                icon: "/dashboard-streak-3d.png",
+                l: "Dias de streak",
+                bg: "bg-streak/15",
+                c: "text-streak",
+              },
+              {
+                v: "2.840",
+                icon: "/dashboard-xp-3d.png",
+                l: "XP total",
+                bg: "bg-xp/20",
+                c: "text-xp-foreground",
+              },
               { v: "Nv 14", l: "Diagnosta", bg: "bg-info/15", c: "text-info" },
               { v: "87%", l: "Acerto médio", bg: "bg-primary/15", c: "text-primary" },
             ].map((s, i) => (
               <div key={i} className={`card-pop card-jelly p-6 ${s.bg}`}>
-                <div className={`text-3xl font-extrabold animate-tick ${s.c}`}>{s.v}</div>
+                <div
+                  className={`flex items-center gap-2 text-3xl font-extrabold animate-tick ${s.c}`}
+                >
+                  {s.icon && (
+                    <Image
+                      src={s.icon}
+                      alt=""
+                      width={34}
+                      height={34}
+                      className="h-[34px] w-[34px] object-contain"
+                    />
+                  )}
+                  {s.v}
+                </div>
                 <div className="mt-1 text-sm font-bold text-muted-foreground">{s.l}</div>
               </div>
             ))}
@@ -227,7 +289,16 @@ export default function Landing() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="card-pop p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-extrabold text-lg">🏆 Ranking semanal</h3>
+              <h3 className="flex items-center gap-2 font-extrabold text-lg">
+                <Image
+                  src="/landing-trophy-3d.png"
+                  alt=""
+                  width={30}
+                  height={30}
+                  className="h-[30px] w-[30px] object-contain"
+                />
+                Ranking semanal
+              </h3>
               <span className="text-xs font-bold text-muted-foreground">USP · Med</span>
             </div>
             <div className="space-y-2 stagger">
@@ -248,7 +319,16 @@ export default function Landing() {
                     {u.p}
                   </div>
                   <div className="flex-1 font-bold">{u.n}</div>
-                  <div className="text-sm font-extrabold text-xp-foreground">★ {u.xp}</div>
+                  <div className="flex items-center gap-1 text-sm font-extrabold text-xp-foreground">
+                    <Image
+                      src="/dashboard-xp-3d.png"
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="h-5 w-5 object-contain"
+                    />
+                    {u.xp}
+                  </div>
                 </div>
               ))}
             </div>
@@ -301,7 +381,13 @@ export default function Landing() {
             },
           ].map((t, i) => (
             <div key={i} className="card-pop card-jelly p-6">
-              <div className="text-2xl mb-3 animate-wiggle">💬</div>
+              <Image
+                src="/landing-chat-3d.png"
+                alt=""
+                width={36}
+                height={36}
+                className="mb-3 h-9 w-9 animate-wiggle object-contain"
+              />
               <p className="font-bold text-lg leading-snug">“{t.t}”</p>
               <div className="mt-5 flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full" style={{ background: t.c }} />
@@ -342,7 +428,7 @@ export default function Landing() {
               Começar grátis
             </Link>
           </div>
-          <div className="card-pop card-jelly p-8 relative overflow-hidden border-primary/40 bg-gradient-to-br from-accent/40 to-card">
+          {/* <div className="card-pop card-jelly p-8 relative overflow-hidden border-primary/40 bg-gradient-to-br from-accent/40 to-card">
             <div className="absolute top-4 right-4 rounded-full bg-xp text-xp-foreground px-3 py-1 text-[10px] font-extrabold uppercase animate-pop-badge">
               Mais popular
             </div>
@@ -365,6 +451,7 @@ export default function Landing() {
               Assinar Pro
             </Link>
           </div>
+          */}
         </div>
       </section>
 
