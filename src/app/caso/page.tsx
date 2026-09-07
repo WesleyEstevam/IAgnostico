@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Navbar } from "@/presentation/components/shared/navbar";
 import { useEffect, useRef, useState } from "react";
 import { useEmergencyAmbience } from "@/presentation/hooks/use-emergency-ambience";
+import { useChatBubbleSound } from "@/presentation/hooks/use-chat-bubble-sound";
 import { refreshAuthSession } from "@/presentation/auth/auth-store";
 
 type Msg = { who: "patient" | "you"; text: string };
@@ -56,6 +57,7 @@ export default function CasePage() {
   const savingRef = useRef(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const { playing, start, stop, toggle } = useEmergencyAmbience();
+  const { play: playChatBubble, unlock: unlockChatBubble } = useChatBubbleSound();
 
   useEffect(() => {
     const gameId = new URLSearchParams(window.location.search).get("partida");
@@ -165,6 +167,7 @@ export default function CasePage() {
     const gameId = new URLSearchParams(window.location.search).get("partida");
     if (!gameId) return;
 
+    unlockChatBubble();
     setInput("");
     setChatError(undefined);
     setSendingMessage(true);
@@ -179,6 +182,7 @@ export default function CasePage() {
       const payload = (await response.json()) as { reply?: string; remainingMessages?: number; error?: string };
       if (!response.ok || !payload.reply) throw new Error(payload.error ?? "O paciente não conseguiu responder agora.");
       setMsgs((current) => [...current, { who: "patient", text: payload.reply! }]);
+      playChatBubble();
       if (typeof payload.remainingMessages === "number") setRemainingChatMessages(payload.remainingMessages);
     } catch (error) {
       setChatError(error instanceof Error ? error.message : "O paciente não conseguiu responder agora.");
@@ -312,7 +316,6 @@ export default function CasePage() {
               <div className="grid grid-cols-2 gap-2">
                 {clinicalCase.exams.map((exam) => (
                   <button key={exam.name} type="button" onClick={() => setRevealedExams((current) => new Set(current).add(exam.name))} className="relative rounded-xl border-2 border-border bg-card px-3 py-2.5 text-xs font-extrabold transition-colors hover:border-primary hover:bg-accent">
-                    {exam.highlighted && !revealedExams.has(exam.name) && <span className="absolute -right-1.5 -top-1.5 h-3 w-3 animate-pulse rounded-full bg-streak" />}
                     {exam.name}
                   </button>
                 ))}
