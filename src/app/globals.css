@@ -252,6 +252,22 @@
   0%, 100% { transform: translate(0, 2px) rotate(-1deg) }
   50% { transform: translate(5px, -7px) rotate(2deg) }
 }
+@keyframes dashboard-flame {
+  0%, 100% { transform: translateY(1px) scale(0.96) rotate(-2deg) }
+  50% { transform: translateY(-2px) scale(1.06) rotate(2deg) }
+}
+@keyframes dashboard-star {
+  0%, 100% { transform: scale(1) rotate(-3deg); filter: brightness(1) }
+  50% { transform: scale(1.08) rotate(3deg); filter: brightness(1.12) }
+}
+@keyframes dashboard-medal {
+  0%, 100% { transform: translateY(0) rotate(-2deg) }
+  50% { transform: translateY(-2px) rotate(2deg) }
+}
+@keyframes dashboard-target {
+  0%, 100% { transform: scale(0.98) }
+  50% { transform: scale(1.06) }
+}
 
 .animate-float { animation: float-slow 5s ease-in-out infinite }
 .animate-pop-in { animation: pop-in 0.5s cubic-bezier(.34,1.56,.64,1) both }
@@ -260,6 +276,14 @@
 .animate-pop-badge { animation: pop-badge 1.8s ease-in-out infinite }
 .animate-glow-pulse { animation: glow-pulse 2.2s ease-out infinite }
 .animate-tick { animation: tick-up 1.6s ease-in-out infinite }
+.dashboard-icon-streak { animation: dashboard-flame 2.2s ease-in-out infinite }
+.dashboard-icon-xp { animation: dashboard-star 3s ease-in-out infinite }
+.dashboard-icon-level { animation: dashboard-medal 2.8s ease-in-out infinite }
+.dashboard-icon-accuracy { animation: dashboard-target 2.6s ease-in-out infinite }
+.dashboard-icon-streak,
+.dashboard-icon-xp,
+.dashboard-icon-level,
+.dashboard-icon-accuracy { will-change: transform }
 .amimir-bubble-layer {
   animation: amimir-bubble-float 3.6s ease-in-out infinite;
   will-change: transform;

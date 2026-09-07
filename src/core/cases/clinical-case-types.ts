@@ -11,7 +11,7 @@ export type ClinicalCaseDocument = {
   patient: { name: string; age: number; avatar: string };
   initialMessages: Array<{ who: "patient" | "you"; text: string }>;
   fallbackReply: string;
-  exams: Array<{ name: string; result: string; highlighted?: boolean }>;
+  exams: Array<{ name: string; result: string; kind?: "relevant" | "neutral" | "distractor"; highlighted?: boolean }>;
   durationSeconds: number;
   maxXp: number;
   diagnosis: string;
@@ -21,8 +21,9 @@ export type ClinicalCaseDocument = {
   sourceRefs: string[];
 };
 
-export type PublicClinicalCase = Omit<ClinicalCaseDocument, "diagnosis" | "diagnosisAliases" | "partialDiagnosisAliases" | "feedback" | "sourceRefs" | "status" | "schemaVersion"> & {
+export type PublicClinicalCase = Omit<ClinicalCaseDocument, "diagnosis" | "diagnosisAliases" | "partialDiagnosisAliases" | "feedback" | "status" | "schemaVersion"> & {
   id: string;
   specialtyLabel: string;
+  requestedSpecialty: CaseSpecialty | "aleatorio";
   remainingSeconds: number;
 };

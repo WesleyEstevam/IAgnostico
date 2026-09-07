@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "seed:cases": "node --env-file=.env.local scripts/seed-clinical-cases.mjs",
+    "seed:cases": "node --env-file=.env.local scripts/seed-clinical-cases-v2.mjs",
+    "grant:admin": "node --env-file=.env.local scripts/grant-admin.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

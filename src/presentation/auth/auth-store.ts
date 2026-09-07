@@ -6,6 +6,7 @@ export type AuthSession = {
     displayName: string | null;
     photoURL: string | null;
     emailVerified: boolean;
+    role: "admin" | "player";
   };
   shifts: { current: number; max: number };
 };

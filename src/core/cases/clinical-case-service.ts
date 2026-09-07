@@ -10,9 +10,31 @@ const specialtyLabels: Record<CaseSpecialty, string> = {
   infectologia: "Infectologia",
 };
 
+const legacyCaseIds: Record<string, string> = {
+  "pulmonary-embolism-001": "clinica-geral-tep",
+  "cardiologia-disseccao-aorta": "cardiologia-disseccao-aorta",
+  "cardiologia-emergencia-hipertensiva": "cardiologia-emergencia-hipertensiva",
+  "cardiologia-fibrilacao-atrial": "cardiologia-fibrilacao-atrial-rvr",
+  "cardiologia-iam-com-supra": "cardiologia-iam-anterior",
+  "cardiologia-insuficiencia-cardiaca": "cardiologia-ic-fer-descompensada",
+  "cardiologia-pericardite": "cardiologia-pericardite-aguda",
+  "clinica-geral-tromboembolismo-pulmonar": "clinica-geral-tep",
+  "clinica-geral-cetoacidose-diabetica": "clinica-geral-cetoacidose-diabetica",
+  "clinica-geral-asma-aguda": "clinica-geral-asma-grave",
+  "clinica-geral-hemorragia-digestiva-alta": "clinica-geral-hda-ulcera",
+  "clinica-geral-avc-isquemico": "clinica-geral-avc-isquemico",
+  "clinica-geral-pielonefrite": "clinica-geral-pielonefrite",
+  "infectologia-dengue-sinais-alarme": "infectologia-dengue-alarme",
+  "infectologia-meningite-bacteriana": "infectologia-meningite-pneumococica",
+  "infectologia-tuberculose-pulmonar": "infectologia-tb-pulmonar",
+  "infectologia-pneumonia-comunitaria": "infectologia-pneumonia-pneumococica",
+  "infectologia-leptospirose": "infectologia-leptospirose",
+};
+
 export function resolveClinicalCaseId(caseId: unknown) {
   const value = String(caseId);
-  return value === "pulmonary-embolism-001" ? "clinica-geral-tromboembolismo-pulmonar-01" : value;
+  const legacyBase = value.replace(/-\d{2}$/, "");
+  return legacyCaseIds[value] ?? legacyCaseIds[legacyBase] ?? value;
 }
 
 export class ClinicalCaseNotFoundError extends Error {}
@@ -46,6 +68,7 @@ export async function getPublicGameCase(uid: string, gameId: string): Promise<Pu
     id: caseSnapshot.id,
     specialty: clinicalCase.specialty,
     specialtyLabel: specialtyLabels[clinicalCase.specialty],
+    requestedSpecialty: game.requestedSpecialty === "aleatorio" ? "aleatorio" : clinicalCase.specialty,
     difficulty: clinicalCase.difficulty,
     title: clinicalCase.title,
     setting: clinicalCase.setting,
@@ -56,6 +79,7 @@ export async function getPublicGameCase(uid: string, gameId: string): Promise<Pu
     exams: clinicalCase.exams,
     durationSeconds: clinicalCase.durationSeconds,
     maxXp: clinicalCase.maxXp,
+    sourceRefs: clinicalCase.sourceRefs.filter((source) => /^https?:\/\//i.test(source)),
     remainingSeconds,
   };
 }
@@ -69,7 +93,7 @@ function normalizeDiagnosis(value: string) {
 function includesAlias(normalizedHypothesis: string, aliases: string[]) {
   return aliases.some((alias) => {
     const normalizedAlias = normalizeDiagnosis(alias);
-    return normalizedAlias.length > 0 && (normalizedHypothesis === normalizedAlias || normalizedHypothesis.includes(normalizedAlias));
+    return normalizedAlias.length > 0 && (` ${normalizedHypothesis} `.includes(` ${normalizedAlias} `));
   });
 }
 

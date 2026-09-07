@@ -34,6 +34,7 @@ A autenticação usa Firebase no navegador apenas para obter o ID token. O servi
 - O streak usa o calendário de `America/Bahia`: o primeiro caso concluído no dia inicia ou mantém a sequência, um caso no dia seguinte incrementa `+1` e um dia perdido reinicia a sequência.
 - O ranking lê somente `playerProfiles`, uma projeção pública sem e-mail ou saldo de plantões, atualizada pelo servidor durante o login e a conclusão dos casos.
 - A correção diagnóstica possui três níveis: correto (100% do XP), chegou perto (50%) e incorreto (20% quando uma hipótese foi enviada). Os aliases de resposta parcial são configurados individualmente por arquétipo clínico.
+- Cada caso do catálogo MVP possui exatamente cinco exames: dois relevantes, dois neutros e um distrator plausível. A categoria é interna e não é revelada ao jogador.
 
 ## Configuração do Firebase
 
@@ -41,7 +42,8 @@ A autenticação usa Firebase no navegador apenas para obter o ID token. O servi
 2. No Firebase Authentication, habilite E-mail/senha e os provedores sociais desejados.
 3. Crie o banco Cloud Firestore e publique `firestore.rules` antes de usar dados reais.
 4. Publique também `firestore.indexes.json`; o índice de partidas por usuário e data é necessário para o histórico e os gráficos de evolução.
-5. Execute `npm run seed:cases` uma vez para publicar o catálogo MVP com 85 casos clínicos. O comando é idempotente e pode ser repetido sem criar duplicatas.
+5. Execute `npm run seed:cases` uma vez para publicar o catálogo `mvp-2`, com 85 cenários clínicos distintos: 30 de Cardiologia, 30 de Clínica Geral e 25 de Infectologia. O comando valida e substitui somente documentos gerenciados por versões anteriores do seed, preservando casos manuais.
+6. Para liberar o painel de casos para um usuário já cadastrado, execute `npm run grant:admin -- usuario@exemplo.com`. O acesso é verificado novamente no servidor em cada operação administrativa.
 
 Nunca versione `.env.local` ou o JSON da conta de serviço.
 

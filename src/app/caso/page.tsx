@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/presentation/components/shared/navbar";
 import { useEffect, useRef, useState } from "react";
 import { useEmergencyAmbience } from "@/presentation/hooks/use-emergency-ambience";
@@ -18,6 +19,7 @@ type CaseResult = {
 type ClinicalCase = {
   id: string;
   specialtyLabel: string;
+  requestedSpecialty: "cardiologia" | "clinica-geral" | "infectologia" | "aleatorio";
   difficulty: "facil" | "intermediario" | "dificil";
   title: string;
   setting: string;
@@ -29,6 +31,7 @@ type ClinicalCase = {
   durationSeconds: number;
   remainingSeconds: number;
   maxXp: number;
+  sourceRefs: string[];
 };
 
 export default function CasePage() {
@@ -303,7 +306,15 @@ export default function CasePage() {
           >
             <div className={`p-7 text-center text-white sm:p-9 ${result.evaluation === "correct" ? "bg-primary" : result.evaluation === "partial" ? "bg-info" : "bg-streak"}`}>
               <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-white/20 text-4xl">
-                {result.evaluation === "correct" ? "✓" : result.evaluation === "partial" ? "🎯" : result.reason === "tempo" ? "⏱" : "🧠"}
+                {result.evaluation === "correct" ? "✓" : result.evaluation === "partial" ? "🎯" : result.reason === "tempo" ? "⏱" : (
+                  <Image
+                    src="/feedback-medica-3d.png"
+                    alt="Médica em estilo 3D"
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 object-contain"
+                  />
+                )}
               </div>
               <div className="mt-5 flex justify-center">
                 <span className="inline-flex items-center gap-2 rounded-full border-2 border-white/35 bg-white/20 px-5 py-2 text-sm font-extrabold uppercase tracking-[0.16em] shadow-lg backdrop-blur-sm">
@@ -336,7 +347,16 @@ export default function CasePage() {
 
               <div className="mt-5 rounded-2xl border-2 border-primary/25 bg-primary/5 p-5">
                 <h3 className="flex items-center gap-2 font-extrabold">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground">🧠</span>
+                  <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/15">
+                    <Image
+                      src="/feedback-medica-3d.png"
+                      alt=""
+                      width={34}
+                      height={34}
+                      className="h-[34px] w-[34px] object-contain"
+                      aria-hidden="true"
+                    />
+                  </span>
                   Feedback do caso
                 </h3>
                 <p className="mt-3 text-sm font-medium leading-relaxed text-muted-foreground">
@@ -344,12 +364,21 @@ export default function CasePage() {
                 </p>
               </div>
 
+              {clinicalCase.sourceRefs.length > 0 && <div className="mt-4 rounded-2xl border border-border bg-muted/40 p-4">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">📚 Fontes do caso</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {clinicalCase.sourceRefs.map((source, index) => <a key={source} href={source} target="_blank" rel="noopener noreferrer" className="rounded-full bg-card px-3 py-1.5 text-xs font-extrabold text-info underline decoration-info/40 underline-offset-2 hover:decoration-info" title={source}>
+                    {clinicalCase.sourceRefs.length === 1 ? "Abrir referência clínica ↗" : `Abrir referência ${index + 1} ↗`}
+                  </a>)}
+                </div>
+              </div>}
+
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Link
-                  href="/especialidade"
+                  href={result.evaluation === "correct" ? `/preparacao/${clinicalCase.requestedSpecialty}` : "/especialidade"}
                   className="btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)]"
                 >
-                  Novo plantão
+                  {result.evaluation === "correct" ? "Continuar" : "Novo plantão"}
                 </Link>
                 <Link
                   href="/dashboard"

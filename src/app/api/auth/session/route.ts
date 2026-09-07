@@ -115,6 +115,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ authenticated: false }, { status: 401 });
 
   const shifts = await getRefreshedShiftBalance(user.uid);
+  const profile = await getFirebaseAdminFirestore().collection("users").doc(user.uid).get();
 
   return NextResponse.json({
     authenticated: true,
@@ -124,6 +125,7 @@ export async function GET() {
       displayName: user.name ?? null,
       photoURL: typeof user.picture === "string" ? user.picture : null,
       emailVerified: user.email_verified === true,
+      role: profile.data()?.role === "admin" ? "admin" : "player",
     },
     shifts,
   });
