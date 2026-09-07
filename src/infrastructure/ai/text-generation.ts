@@ -19,6 +19,8 @@ type GeminiResponse = {
   }>;
 };
 
+type ProviderError = { error?: { code?: number; message?: string; status?: string } };
+
 function selectedProvider(): AIProvider {
   return process.env.AI_PROVIDER?.trim().toLocaleLowerCase("en-US") === "gemini"
     ? "gemini"
@@ -29,7 +31,7 @@ function selectedModel(provider: AIProvider) {
   const configuredModel = process.env.AI_MODEL?.trim();
   if (configuredModel) return configuredModel;
   if (provider === "openai") return process.env.OPENAI_CHAT_MODEL?.trim() || "gpt-5.6-luna";
-  return "gemini-3.5-flash-lite";
+  return "gemini-3.6-flash";
 }
 
 function extractOpenAIText(payload: OpenAIResponse) {
@@ -63,7 +65,8 @@ async function generateWithOpenAI(input: GenerationInput) {
   });
 
   if (!response.ok) {
-    console.error("Provedor OpenAI não respondeu", { status: response.status });
+    const error = await response.text();
+    console.error("Provedor OpenAI não respondeu", { status: response.status, error: error.slice(0, 500) });
     return null;
   }
   return extractOpenAIText((await response.json()) as OpenAIResponse) || null;
@@ -72,7 +75,7 @@ async function generateWithOpenAI(input: GenerationInput) {
 async function generateWithGemini(input: GenerationInput) {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) return null;
-  const model = selectedModel("gemini");
+  const model = selectedModel("gemini").replace(/^models\//, "");
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const contents = input.messages.map((message) => ({
     role: message.role === "assistant" ? "model" : "user",
@@ -91,13 +94,19 @@ async function generateWithGemini(input: GenerationInput) {
       generationConfig: {
         maxOutputTokens: input.maxOutputTokens,
         temperature: 0.4,
+        thinkingConfig: { thinkingLevel: "minimal" },
       },
     }),
     signal: AbortSignal.timeout(12_000),
   });
 
   if (!response.ok) {
-    console.error("Provedor Gemini não respondeu", { status: response.status });
+    const payload = (await response.json().catch(() => ({}))) as ProviderError;
+    console.error("Provedor Gemini não respondeu", {
+      status: response.status,
+      code: payload.error?.status,
+      message: payload.error?.message,
+    });
     return null;
   }
 

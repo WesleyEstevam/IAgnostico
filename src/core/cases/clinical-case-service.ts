@@ -88,7 +88,9 @@ export async function getPublicGameCase(uid: string, gameId: string): Promise<Pu
     setting: clinicalCase.setting,
     summary: clinicalCase.summary,
     patient: clinicalCase.patient,
-    initialMessages: clinicalCase.initialMessages,
+    initialMessages: clinicalCase.initialMessages
+      .filter((message) => message.who === "patient")
+      .slice(0, 1),
     fallbackReply: clinicalCase.fallbackReply,
     exams: clinicalCase.exams,
     durationSeconds: clinicalCase.durationSeconds,

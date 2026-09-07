@@ -24,7 +24,7 @@ src/
 
 A autenticação usa Firebase no navegador apenas para obter o ID token. O servidor o troca por um cookie de sessão `httpOnly` e cria o perfil privado com 3 plantões gratuitos. O fluxo inclui login social/e-mail, recuperação de senha e logout. As áreas privadas validam a sessão no servidor; pontuação, tempo, gabarito, plantões e ranking permanecem sob autoridade do servidor.
 
-O chat do caso clínico aceita OpenAI ou Gemini e acessa o provedor somente no servidor. Configure `AI_PROVIDER`, `AI_MODEL` e a chave correspondente (`OPENAI_API_KEY` ou `GEMINI_API_KEY`) em `.env.local` e nas variáveis da Vercel. Para OpenAI, use `AI_PROVIDER=openai` e `AI_MODEL=gpt-5.6-luna`. Para Gemini, use `AI_PROVIDER=gemini` e `AI_MODEL=gemini-3.5-flash-lite`. Cada partida aceita até 10 perguntas; se o provedor estiver indisponível ou a chave não estiver configurada, o paciente usa a resposta de fallback do caso.
+O chat do caso clínico aceita OpenAI ou Gemini e acessa o provedor somente no servidor. Configure `AI_PROVIDER`, `AI_MODEL` e a chave correspondente (`OPENAI_API_KEY` ou `GEMINI_API_KEY`) em `.env.local` e nas variáveis da Vercel. Para OpenAI, use `AI_PROVIDER=openai` e `AI_MODEL=gpt-5.6-luna`. Para Gemini, use `AI_PROVIDER=gemini` e `AI_MODEL=gemini-3.6-flash`. Cada partida aceita até 10 perguntas; se o provedor estiver indisponível ou a chave não estiver configurada, o paciente usa a resposta de fallback do caso.
 
 ### Plantões gratuitos
 

@@ -53,7 +53,10 @@ REGRAS INEGOCIÁVEIS
 }
 
 async function generatePatientReply(clinicalCase: ClinicalCaseDocument, history: ChatMessage[]) {
-  const messages = [...clinicalCase.initialMessages, ...history]
+  const initialPatientMessage = clinicalCase.initialMessages
+    .filter((message) => message.who === "patient")
+    .slice(0, 1);
+  const messages = [...initialPatientMessage, ...history]
     .slice(-14)
     .map((message) => ({
       role: message.who === "you" ? "user" as const : "assistant" as const,
