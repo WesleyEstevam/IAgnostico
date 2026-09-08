@@ -1,8 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Logo } from "@/presentation/components/shared/logo";
+import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 
-export default function Landing() {
+export default async function Landing() {
+  const user = await getCurrentFirebaseUser();
+  const ctaHref = user ? "/dashboard" : "/login";
+
   return (
     <div className="min-h-screen bg-background">
       {/* HERO */}
@@ -30,13 +34,13 @@ export default function Landing() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/login"
+                href={ctaHref}
                 className="btn-pop bg-primary text-primary-foreground text-base shadow-[var(--shadow-pop)] animate-glow-pulse"
               >
-                Começar gratuitamente
+                {user ? "Acessar dashboard" : "Começar gratuitamente"}
               </Link>
               <Link
-                href="/login"
+                href={ctaHref}
                 className="btn-pop bg-card border-2 border-border text-foreground text-base shadow-[var(--shadow-pop-muted)]"
               >
                 Ver caso demo
@@ -345,7 +349,7 @@ export default function Landing() {
               da turma.
             </p>
             <Link
-              href="/login"
+              href={ctaHref}
               className="mt-6 inline-flex btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)]"
             >
               Entrar na liga
@@ -422,10 +426,10 @@ export default function Landing() {
               <li>✓ 3 especialidades</li>
             </ul>
             <Link
-              href="/login"
+              href={ctaHref}
               className="mt-8 btn-pop w-full bg-muted text-foreground shadow-[var(--shadow-pop-muted)]"
             >
-              Começar grátis
+              {user ? "Acessar dashboard" : "Começar grátis"}
             </Link>
           </div>
           {/* <div className="card-pop card-jelly p-8 relative overflow-hidden border-primary/40 bg-gradient-to-br from-accent/40 to-card">
@@ -445,7 +449,7 @@ export default function Landing() {
               <li>✓ Análise de imagens</li>
             </ul>
             <Link
-              href="/login"
+              href={ctaHref}
               className="mt-8 btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)]"
             >
               Assinar Pro

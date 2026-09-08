@@ -1,9 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { LoginActions } from "./login-actions";
+import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const user = await getCurrentFirebaseUser();
+  if (user) redirect("/dashboard");
+
   return (
     <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-gradient-to-br from-primary via-[#52bd03] to-[#347c00] px-5 py-16 sm:px-8">
       <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-white/10 blur-3xl" />

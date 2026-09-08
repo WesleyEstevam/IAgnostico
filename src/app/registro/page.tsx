@@ -1,8 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { RegisterForm } from "./register-form";
+import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const user = await getCurrentFirebaseUser();
+  if (user) redirect("/dashboard");
+
   return <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-gradient-to-br from-primary via-[#52bd03] to-[#347c00] px-5 py-16 sm:px-8">
     <Link href="/" className="absolute left-5 top-5 z-10 text-sm font-extrabold text-white/80 hover:text-white">← Voltar</Link>
     <section className="card-pop relative z-10 w-full max-w-lg border-white/30 bg-background p-6 shadow-2xl sm:p-10">
