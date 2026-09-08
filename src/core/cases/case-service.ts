@@ -5,6 +5,7 @@ import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { getPreviousDateKey, getShiftDateKey } from "@/core/shifts/shift-service";
 import { evaluateDiagnosis, resolveClinicalCaseId } from "./clinical-case-service";
 import type { ClinicalCaseDocument } from "./clinical-case-types";
+import { getProfileAvatarSrc } from "@/shared/constants/profile";
 
 export class GameSessionNotFoundError extends Error {}
 export class GameSessionForbiddenError extends Error {}
@@ -95,7 +96,7 @@ export async function finishGameSession(uid: string, gameId: string, hypothesis:
     });
     transaction.set(playerProfileRef, {
       displayName: typeof userSnapshot.data()?.displayName === "string" ? userSnapshot.data()?.displayName : "Jogador",
-      photoURL: typeof userSnapshot.data()?.photoURL === "string" ? userSnapshot.data()?.photoURL : null,
+      photoURL: getProfileAvatarSrc(userSnapshot.data()?.avatarId) ?? (typeof userSnapshot.data()?.photoURL === "string" ? userSnapshot.data()?.photoURL : null),
       xp,
       level: Math.floor(xp / 500) + 1,
       streak,

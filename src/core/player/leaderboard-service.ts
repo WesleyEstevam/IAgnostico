@@ -2,6 +2,7 @@ import "server-only";
 
 import { FieldValue } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
+import { getProfileAvatarSrc } from "@/shared/constants/profile";
 
 function numberValue(value: unknown, fallback = 0) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -19,7 +20,7 @@ export async function getLeaderboard(currentUid: string, limit = 50) {
       const stats = data.stats ?? {};
       await playerProfileRef.set({
         displayName: typeof data.displayName === "string" && data.displayName.trim() ? data.displayName : "Jogador",
-        photoURL: typeof data.photoURL === "string" ? data.photoURL : null,
+        photoURL: getProfileAvatarSrc(data.avatarId) ?? (typeof data.photoURL === "string" ? data.photoURL : null),
         xp: numberValue(stats.xp),
         level: numberValue(stats.level, 1),
         streak: numberValue(stats.streak),

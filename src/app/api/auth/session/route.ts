@@ -9,6 +9,7 @@ import {
   SESSION_DURATION_MS,
 } from "@/shared/constants/auth";
 import { FREE_PLAN_MAX_SHIFTS, getRefreshedShiftBalance, getShiftDateKey } from "@/core/shifts/shift-service";
+import { getProfileAvatarSrc } from "@/shared/constants/profile";
 
 const sessionSchema = z.object({ idToken: z.string().min(1) });
 
@@ -38,8 +39,11 @@ export async function POST(request: NextRequest) {
     const playerProfileRef = firestore.collection("playerProfiles").doc(decodedToken.uid);
     await firestore.runTransaction(async (transaction) => {
       const userSnapshot = await transaction.get(userRef);
+      const storedProfile = userSnapshot.data();
       const identity = {
-        displayName: userRecord.displayName ?? "Jogador",
+        displayName: typeof storedProfile?.displayName === "string" && storedProfile.displayName.trim()
+          ? storedProfile.displayName
+          : userRecord.displayName ?? "Jogador",
         email: userRecord.email ?? null,
         photoURL: userRecord.photoURL ?? null,
         updatedAt: FieldValue.serverTimestamp(),
@@ -75,7 +79,7 @@ export async function POST(request: NextRequest) {
 
       transaction.set(playerProfileRef, {
         displayName: identity.displayName,
-        photoURL: identity.photoURL,
+        photoURL: getProfileAvatarSrc(storedProfile?.avatarId) ?? identity.photoURL,
         xp: typeof stats.xp === "number" ? stats.xp : 0,
         level: typeof stats.level === "number" ? stats.level : 1,
         streak: typeof stats.streak === "number" ? stats.streak : 0,
@@ -116,16 +120,17 @@ export async function GET() {
 
   const shifts = await getRefreshedShiftBalance(user.uid);
   const profile = await getFirebaseAdminFirestore().collection("users").doc(user.uid).get();
+  const profileData = profile.data();
 
   return NextResponse.json({
     authenticated: true,
     user: {
       uid: user.uid,
       email: user.email ?? null,
-      displayName: user.name ?? null,
-      photoURL: typeof user.picture === "string" ? user.picture : null,
+      displayName: typeof profileData?.displayName === "string" ? profileData.displayName : user.name ?? null,
+      photoURL: getProfileAvatarSrc(profileData?.avatarId) ?? (typeof profileData?.photoURL === "string" ? profileData.photoURL : typeof user.picture === "string" ? user.picture : null),
       emailVerified: user.email_verified === true,
-      role: profile.data()?.role === "admin" ? "admin" : "player",
+      role: profileData?.role === "admin" ? "admin" : "player",
     },
     shifts,
   });

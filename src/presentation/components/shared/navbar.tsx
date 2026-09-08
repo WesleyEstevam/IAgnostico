@@ -109,8 +109,14 @@ export function Navbar() {
                   )}
                 </div>
                 <Link
-                  href="/evolucao"
+                  href="/perfil"
                   className="mt-1 block rounded-xl px-3 py-2 text-xs font-extrabold text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  Meu perfil
+                </Link>
+                <Link
+                  href="/evolucao"
+                  className="block rounded-xl px-3 py-2 text-xs font-extrabold text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   Minha evolução
                 </Link>
