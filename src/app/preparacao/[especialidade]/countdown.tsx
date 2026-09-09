@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { refreshAuthSession } from "@/presentation/auth/auth-store";
+import { PRO_PLAN_CTA_HREF } from "@/shared/constants/plans";
 
 type CountdownProps = {
   especialidade: string;
@@ -127,11 +129,14 @@ export function Countdown({ especialidade }: CountdownProps) {
             </div>
             <h1 className="mt-3 text-2xl font-extrabold">Seu plantão acabou</h1>
             <p className="mt-2 font-bold text-muted-foreground">{errorMessage}</p>
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 flex flex-col gap-3">
+              <Link href={PRO_PLAN_CTA_HREF} className="btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)]">
+                Continuar com o plano Pro
+              </Link>
               <button
                 type="button"
                 onClick={() => router.replace("/dashboard")}
-                className="btn-pop bg-muted text-foreground shadow-[var(--shadow-pop-muted)]"
+                className="btn-pop w-full bg-muted text-foreground shadow-[var(--shadow-pop-muted)]"
               >
                 Voltar ao dashboard
               </button>

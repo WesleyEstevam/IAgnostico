@@ -406,7 +406,7 @@ export default async function Landing() {
       </section>
 
       {/* PRICING */}
-      <section className="mx-auto max-w-5xl px-4 sm:px-6 py-20">
+      <section id="planos" className="mx-auto max-w-5xl scroll-mt-8 px-4 py-20 sm:px-6">
         <div className="text-center">
           <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
             Comece grátis. Evolua quando quiser.
@@ -432,7 +432,7 @@ export default async function Landing() {
               {user ? "Acessar dashboard" : "Começar grátis"}
             </Link>
           </div>
-          {/* <div className="card-pop card-jelly p-8 relative overflow-hidden border-primary/40 bg-gradient-to-br from-accent/40 to-card">
+          <div id="plano-pro" className="card-pop card-jelly relative scroll-mt-8 overflow-hidden border-primary/40 bg-gradient-to-br from-accent/40 to-card p-8">
             <div className="absolute top-4 right-4 rounded-full bg-xp text-xp-foreground px-3 py-1 text-[10px] font-extrabold uppercase animate-pop-badge">
               Mais popular
             </div>
@@ -455,7 +455,6 @@ export default async function Landing() {
               Assinar Pro
             </Link>
           </div>
-          */}
         </div>
       </section>
 
