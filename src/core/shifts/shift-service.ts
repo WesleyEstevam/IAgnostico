@@ -3,10 +3,11 @@ import "server-only";
 import { FieldValue } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { ClinicalCaseNotFoundError, selectPublishedCase } from "@/core/cases/clinical-case-service";
-import type { CaseSpecialty } from "@/core/cases/clinical-case-types";
+import { PRO_CASE_SPECIALTIES, type CaseSpecialty } from "@/core/cases/clinical-case-types";
 
 export const SHIFT_TIME_ZONE = "America/Bahia";
 export const FREE_PLAN_MAX_SHIFTS = 3;
+export const PRO_PLAN_MAX_SHIFTS = 10;
 
 type ShiftBalance = {
   current: number;
@@ -16,6 +17,7 @@ type ShiftBalance = {
 
 export class NoShiftsAvailableError extends Error {}
 export class PlayerProfileNotFoundError extends Error {}
+export class ProPlanRequiredError extends Error {}
 
 export function getShiftDateKey(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -35,11 +37,11 @@ export function getPreviousDateKey(dateKey: string) {
 }
 
 function readBalance(data: FirebaseFirestore.DocumentData | undefined, today: string): ShiftBalance {
-  const max = typeof data?.shifts?.max === "number" ? data.shifts.max : FREE_PLAN_MAX_SHIFTS;
+  const max = data?.plan === "pro" ? PRO_PLAN_MAX_SHIFTS : FREE_PLAN_MAX_SHIFTS;
   const storedCurrent = typeof data?.shifts?.current === "number" ? data.shifts.current : max;
   const lastRefillDate = typeof data?.shifts?.lastRefillDate === "string" ? data.shifts.lastRefillDate : "";
   return {
-    current: lastRefillDate === today ? Math.max(0, Math.min(storedCurrent, max)) : max,
+    current: lastRefillDate === today && data?.shifts?.max === max ? Math.max(0, Math.min(storedCurrent, max)) : max,
     max,
     lastRefillDate: today,
   };
@@ -65,12 +67,16 @@ export async function getRefreshedShiftBalance(uid: string) {
 
 export async function startShift(uid: string, specialty: string, requestId: string) {
   const firestore = getFirebaseAdminFirestore();
-  const selectedCase = await selectPublishedCase(specialty as CaseSpecialty | "aleatorio");
-  if (!selectedCase) throw new ClinicalCaseNotFoundError();
-  const clinicalCase = selectedCase.data();
   const userRef = firestore.collection("users").doc(uid);
   const gameRef = firestore.collection("gameSessions").doc(requestId);
   const today = getShiftDateKey();
+  const preflightUser = await userRef.get();
+  if (!preflightUser.exists) throw new PlayerProfileNotFoundError();
+  const hasProAccess = preflightUser.data()?.plan === "pro";
+  if (!hasProAccess && PRO_CASE_SPECIALTIES.includes(specialty as CaseSpecialty)) throw new ProPlanRequiredError();
+  const selectedCase = await selectPublishedCase(specialty as CaseSpecialty | "aleatorio", hasProAccess);
+  if (!selectedCase) throw new ClinicalCaseNotFoundError();
+  const clinicalCase = selectedCase.data();
 
   return firestore.runTransaction(async (transaction) => {
     const existingGame = await transaction.get(gameRef);
@@ -85,6 +91,7 @@ export async function startShift(uid: string, specialty: string, requestId: stri
 
     const userSnapshot = await transaction.get(userRef);
     if (!userSnapshot.exists) throw new PlayerProfileNotFoundError();
+    if (userSnapshot.data()?.plan !== "pro" && PRO_CASE_SPECIALTIES.includes(clinicalCase.specialty)) throw new ProPlanRequiredError();
     const balance = readBalance(userSnapshot.data(), today);
     if (balance.current <= 0) throw new NoShiftsAvailableError();
 

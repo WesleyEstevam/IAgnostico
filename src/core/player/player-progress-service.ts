@@ -8,6 +8,13 @@ const specialtyNames: Record<string, string> = {
   cardiologia: "Cardiologia",
   "clinica-geral": "Clínica Geral",
   infectologia: "Infectologia",
+  pediatria: "Pediatria",
+  "ginecologia-obstetricia": "Ginecologia e Obstetrícia",
+  anestesiologia: "Anestesiologia",
+  ortopedia: "Ortopedia",
+  radiologia: "Radiologia",
+  oncologia: "Oncologia",
+  dermatologia: "Dermatologia",
   aleatorio: "Aleatório",
 };
 

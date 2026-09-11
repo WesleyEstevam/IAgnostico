@@ -5,7 +5,7 @@ import { Navbar } from "@/presentation/components/shared/navbar";
 import { CaseForm } from "./case-form";
 import { changeCaseStatusAction } from "./actions";
 
-const specialtyLabels = { cardiologia: "Cardiologia", "clinica-geral": "Clínica Geral", infectologia: "Infectologia" };
+const specialtyLabels = { cardiologia: "Cardiologia", "clinica-geral": "Clínica Geral", infectologia: "Infectologia", pediatria: "Pediatria", "ginecologia-obstetricia": "Ginecologia e Obstetrícia", anestesiologia: "Anestesiologia", ortopedia: "Ortopedia", radiologia: "Radiologia", oncologia: "Oncologia", dermatologia: "Dermatologia" };
 const statusLabels = { draft: "Rascunho", published: "Publicado", archived: "Arquivado" };
 
 export default async function AdminCasesPage() {

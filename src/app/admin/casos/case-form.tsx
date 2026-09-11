@@ -12,7 +12,7 @@ export function CaseForm() {
   return <form action={action} className="card-pop space-y-5 p-5 sm:p-7">
     <div><h2 className="text-xl font-extrabold">Novo caso clínico</h2><p className="text-sm font-bold text-muted-foreground">O caso será criado como rascunho.</p></div>
     <div className="grid gap-4 sm:grid-cols-3">
-      <label className="text-sm font-extrabold">Especialidade<select name="specialty" className={`${fieldClass} mt-1.5`}><option value="cardiologia">Cardiologia</option><option value="clinica-geral">Clínica Geral</option><option value="infectologia">Infectologia</option></select></label>
+      <label className="text-sm font-extrabold">Especialidade<select name="specialty" className={`${fieldClass} mt-1.5`}><option value="cardiologia">Cardiologia</option><option value="clinica-geral">Clínica Geral</option><option value="infectologia">Infectologia</option><option value="pediatria">Pediatria</option><option value="ginecologia-obstetricia">Ginecologia e Obstetrícia</option><option value="anestesiologia">Anestesiologia</option><option value="ortopedia">Ortopedia</option><option value="radiologia">Radiologia</option><option value="oncologia">Oncologia</option><option value="dermatologia">Dermatologia</option></select></label>
       <label className="text-sm font-extrabold">Dificuldade<select name="difficulty" className={`${fieldClass} mt-1.5`}><option value="facil">Fácil</option><option value="intermediario">Intermediário</option><option value="dificil">Difícil</option></select></label>
       <label className="text-sm font-extrabold">Cenário<input name="setting" required defaultValue="Emergência" className={`${fieldClass} mt-1.5`} /></label>
     </div>

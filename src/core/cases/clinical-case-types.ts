@@ -1,8 +1,10 @@
-export type CaseSpecialty = "cardiologia" | "clinica-geral" | "infectologia";
+export type CaseSpecialty = "cardiologia" | "clinica-geral" | "infectologia" | "pediatria" | "ginecologia-obstetricia" | "anestesiologia" | "ortopedia" | "radiologia" | "oncologia" | "dermatologia";
 export const MAX_PATIENT_CHAT_MESSAGES = 10;
+export const PRO_CASE_SPECIALTIES: CaseSpecialty[] = ["pediatria", "ginecologia-obstetricia", "anestesiologia", "ortopedia", "radiologia", "oncologia", "dermatologia"];
 
 export type ClinicalCaseDocument = {
   schemaVersion: 1;
+  plan?: "free" | "pro";
   status: "draft" | "published" | "archived";
   specialty: CaseSpecialty;
   difficulty: "facil" | "intermediario" | "dificil";

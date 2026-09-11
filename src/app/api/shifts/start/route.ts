@@ -4,12 +4,13 @@ import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import {
   NoShiftsAvailableError,
   PlayerProfileNotFoundError,
+  ProPlanRequiredError,
   startShift,
 } from "@/core/shifts/shift-service";
 import { ClinicalCaseNotFoundError } from "@/core/cases/clinical-case-service";
 
 const startShiftSchema = z.object({
-  specialty: z.enum(["cardiologia", "clinica-geral", "infectologia", "aleatorio"]),
+  specialty: z.enum(["cardiologia", "clinica-geral", "infectologia", "pediatria", "ginecologia-obstetricia", "anestesiologia", "ortopedia", "radiologia", "oncologia", "dermatologia", "aleatorio"]),
   requestId: z.string().uuid(),
 });
 
@@ -34,6 +35,9 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof PlayerProfileNotFoundError) {
       return NextResponse.json({ error: "Perfil do jogador não encontrado." }, { status: 404 });
+    }
+    if (error instanceof ProPlanRequiredError) {
+      return NextResponse.json({ error: "Esta especialidade está disponível apenas no plano Pro." }, { status: 403 });
     }
     if (error instanceof ClinicalCaseNotFoundError) {
       return NextResponse.json({ error: "Ainda não há casos publicados para esta especialidade." }, { status: 503 });

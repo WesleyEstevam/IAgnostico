@@ -2,12 +2,19 @@ import "server-only";
 
 import { Timestamp } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
-import { MAX_PATIENT_CHAT_MESSAGES, type CaseSpecialty, type ClinicalCaseDocument, type PublicClinicalCase } from "./clinical-case-types";
+import { MAX_PATIENT_CHAT_MESSAGES, PRO_CASE_SPECIALTIES, type CaseSpecialty, type ClinicalCaseDocument, type PublicClinicalCase } from "./clinical-case-types";
 
 const specialtyLabels: Record<CaseSpecialty, string> = {
   cardiologia: "Cardiologia",
   "clinica-geral": "Clínica Geral",
   infectologia: "Infectologia",
+  pediatria: "Pediatria",
+  "ginecologia-obstetricia": "Ginecologia e Obstetrícia",
+  anestesiologia: "Anestesiologia",
+  ortopedia: "Ortopedia",
+  radiologia: "Radiologia",
+  oncologia: "Oncologia",
+  dermatologia: "Dermatologia",
 };
 
 const legacyCaseIds: Record<string, string> = {
@@ -39,13 +46,17 @@ export function resolveClinicalCaseId(caseId: unknown) {
 
 export class ClinicalCaseNotFoundError extends Error {}
 
-export async function selectPublishedCase(specialty: CaseSpecialty | "aleatorio") {
+export async function selectPublishedCase(specialty: CaseSpecialty | "aleatorio", hasProAccess = false) {
   const snapshot = await getFirebaseAdminFirestore()
     .collection("clinicalCases")
     .where("status", "==", "published")
     .limit(200)
     .get();
-  const available = snapshot.docs.filter((document) => specialty === "aleatorio" || document.data().specialty === specialty);
+  const available = snapshot.docs.filter((document) => {
+    const caseSpecialty = document.data().specialty as CaseSpecialty;
+    if (!hasProAccess && PRO_CASE_SPECIALTIES.includes(caseSpecialty)) return false;
+    return specialty === "aleatorio" || caseSpecialty === specialty;
+  });
   if (!available.length) throw new ClinicalCaseNotFoundError();
   return available[Math.floor(Math.random() * available.length)];
 }

@@ -8,7 +8,7 @@ import { requireAdmin } from "@/core/admin/admin-service";
 export type CaseFormState = { success?: string; error?: string };
 
 const caseSchema = z.object({
-  specialty: z.enum(["cardiologia", "clinica-geral", "infectologia"]),
+  specialty: z.enum(["cardiologia", "clinica-geral", "infectologia", "pediatria", "ginecologia-obstetricia", "anestesiologia", "ortopedia", "radiologia", "oncologia", "dermatologia"]),
   difficulty: z.enum(["facil", "intermediario", "dificil"]),
   title: z.string().trim().min(8).max(160),
   setting: z.string().trim().min(2).max(80),

@@ -4,6 +4,13 @@ const especialidades = [
   "cardiologia",
   "clinica-geral",
   "infectologia",
+  "pediatria",
+  "ginecologia-obstetricia",
+  "anestesiologia",
+  "ortopedia",
+  "radiologia",
+  "oncologia",
+  "dermatologia",
   "aleatorio",
 ] as const;
 
