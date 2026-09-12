@@ -10,6 +10,7 @@
     "seed:cases": "node --env-file=.env.local scripts/seed-clinical-cases-v2.mjs",
     "seed:cases:pro": "node --env-file=.env.local scripts/seed-clinical-cases-pro.mjs",
     "grant:admin": "node --env-file=.env.local scripts/grant-admin.mjs",
+    "migrate:admin-users": "node --env-file=.env.local scripts/migrate-admin-user-projections.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

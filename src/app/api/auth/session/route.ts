@@ -11,6 +11,7 @@ import {
 import { FREE_PLAN_MAX_SHIFTS, getRefreshedShiftBalance, getShiftDateKey } from "@/core/shifts/shift-service";
 import { getProfileAvatarSrc } from "@/shared/constants/profile";
 import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
+import { buildUserSearchKeywords, normalizeUserSearch } from "@/core/admin/admin-user-service";
 
 const sessionSchema = z.object({ idToken: z.string().min(1) });
 
@@ -42,6 +43,17 @@ export async function POST(request: NextRequest) {
           : userRecord.displayName ?? "Jogador",
         email: userRecord.email ?? null,
         photoURL: userRecord.photoURL ?? null,
+        phone: userRecord.phoneNumber ?? null,
+        provider: userRecord.providerData[0]?.providerId ?? "password",
+        accountStatus: "active",
+        displayNameNormalized: normalizeUserSearch(typeof storedProfile?.displayName === "string" ? storedProfile.displayName : userRecord.displayName ?? "Jogador"),
+        searchKeywords: buildUserSearchKeywords([
+          typeof storedProfile?.displayName === "string" ? storedProfile.displayName : userRecord.displayName,
+          userRecord.email,
+          userRecord.phoneNumber,
+          userRecord.uid,
+        ]),
+        lastAccessAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };
 

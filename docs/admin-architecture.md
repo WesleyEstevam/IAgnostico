@@ -46,7 +46,7 @@ Não será criada uma segunda coleção de usuários. Campos novos serão adicio
 ## Estratégia de fases
 
 1. **Fundação:** RBAC, namespace/subdomínio, shell administrativo, métricas reais iniciais, auditoria e documentação.
-2. **Usuários:** paginação, busca, filtros, detalhes, ações sensíveis e campo demográfico opcional.
+2. **Usuários (implementado):** paginação, busca, filtros, detalhes, ações sensíveis, migração de projeção e campo demográfico opcional.
 3. **Planos e Asaas:** planos dinâmicos, entitlements, assinatura, pagamentos e webhooks idempotentes.
 4. **Ajuda:** FAQs, categorias, tickets, mensagens e armazenamento privado de anexos.
 5. **Conteúdo:** SEO, termos, templates de e-mail, configurações e rodapé dinâmico.
