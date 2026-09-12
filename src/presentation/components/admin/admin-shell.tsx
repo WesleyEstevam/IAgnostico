@@ -5,8 +5,8 @@ import type { StaffRole } from "@/core/admin/admin-service";
 import { AdminLogoutButton } from "./admin-logout-button";
 
 const roleLabels: Record<StaffRole, string> = { superadmin: "Superadministrador", admin: "Administrador", support: "Atendimento / Suporte" };
-const available = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }, { href: "/admin/usuarios", label: "Usuários", icon: Users }, { href: "/admin/casos", label: "Casos clínicos", icon: BookOpenText }];
-const upcoming = [{ label: "Planos e assinaturas", icon: CreditCard }, { label: "Atendimento", icon: Headphones }, { label: "SEO e conteúdo", icon: BarChart3 }, { label: "Auditoria", icon: ScrollText }, { label: "Configurações", icon: Settings }];
+const available = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }, { href: "/admin/usuarios", label: "Usuários", icon: Users }, { href: "/admin/casos", label: "Casos clínicos", icon: BookOpenText }, { href: "/admin/planos", label: "Planos e assinaturas", icon: CreditCard }];
+const upcoming = [{ label: "Atendimento", icon: Headphones }, { label: "SEO e conteúdo", icon: BarChart3 }, { label: "Auditoria", icon: ScrollText }, { label: "Configurações", icon: Settings }];
 
 export function AdminShell({ children, role, displayName }: { children: React.ReactNode; role: StaffRole; displayName: string }) {
   return <div className="min-h-screen bg-background lg:grid lg:grid-cols-[17rem_1fr]">

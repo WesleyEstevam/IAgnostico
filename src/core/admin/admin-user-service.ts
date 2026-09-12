@@ -2,6 +2,7 @@ import "server-only";
 
 import { FieldValue, Timestamp, type Query } from "firebase-admin/firestore";
 import { getFirebaseAdminAuth, getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
+import { getPlanShiftLimits } from "@/core/admin/plan-admin-service";
 
 export const ADMIN_USERS_PAGE_SIZE = 20;
 export type AdminUserSort = "recent" | "oldest" | "name" | "xp";
@@ -150,11 +151,13 @@ export async function updateAdminUserProfile(uid: string, input: { displayName: 
 
 export async function updateAdminUserPlan(uid: string, plan: "free" | "pro", actorUid: string) {
   const firestore = getFirebaseAdminFirestore();
+  const limits = await getPlanShiftLimits();
   const userRef = firestore.collection("users").doc(uid);
   const current = await userRef.get();
   if (!current.exists) throw new Error("Usuário não encontrado.");
   const batch = firestore.batch();
-  batch.update(userRef, { plan, shifts: { current: plan === "pro" ? 10 : 3, max: plan === "pro" ? 10 : 3, lastRefillDate: new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bahia" }).format(new Date()) }, updatedAt: FieldValue.serverTimestamp() });
+  const maxShifts = limits[plan];
+  batch.update(userRef, { plan, shifts: { current: maxShifts, max: maxShifts, lastRefillDate: new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bahia" }).format(new Date()) }, updatedAt: FieldValue.serverTimestamp() });
   batch.create(firestore.collection("adminAuditLogs").doc(), { actorUid, action: "user.plan_changed", targetType: "user", targetId: uid, before: { plan: current.data()?.plan ?? "free" }, after: { plan }, createdAt: FieldValue.serverTimestamp() });
   await batch.commit();
 }

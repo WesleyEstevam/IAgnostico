@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { ClinicalCaseNotFoundError, selectPublishedCase } from "@/core/cases/clinical-case-service";
 import { PRO_CASE_SPECIALTIES, type CaseSpecialty } from "@/core/cases/clinical-case-types";
+import { getPlanShiftLimits } from "@/core/admin/plan-admin-service";
 
 export const SHIFT_TIME_ZONE = "America/Bahia";
 export const FREE_PLAN_MAX_SHIFTS = 3;
@@ -36,8 +37,8 @@ export function getPreviousDateKey(dateKey: string) {
   return `${previous.getUTCFullYear()}-${String(previous.getUTCMonth() + 1).padStart(2, "0")}-${String(previous.getUTCDate()).padStart(2, "0")}`;
 }
 
-function readBalance(data: FirebaseFirestore.DocumentData | undefined, today: string): ShiftBalance {
-  const max = data?.plan === "pro" ? PRO_PLAN_MAX_SHIFTS : FREE_PLAN_MAX_SHIFTS;
+function readBalance(data: FirebaseFirestore.DocumentData | undefined, today: string, limits = { free: FREE_PLAN_MAX_SHIFTS, pro: PRO_PLAN_MAX_SHIFTS }): ShiftBalance {
+  const max = data?.plan === "pro" ? limits.pro : limits.free;
   const storedCurrent = typeof data?.shifts?.current === "number" ? data.shifts.current : max;
   const lastRefillDate = typeof data?.shifts?.lastRefillDate === "string" ? data.shifts.lastRefillDate : "";
   return {
@@ -51,11 +52,12 @@ export async function getRefreshedShiftBalance(uid: string) {
   const firestore = getFirebaseAdminFirestore();
   const userRef = firestore.collection("users").doc(uid);
   const today = getShiftDateKey();
+  const limits = await getPlanShiftLimits();
 
   return firestore.runTransaction(async (transaction) => {
     const snapshot = await transaction.get(userRef);
     if (!snapshot.exists) throw new PlayerProfileNotFoundError();
-    const balance = readBalance(snapshot.data(), today);
+    const balance = readBalance(snapshot.data(), today, limits);
     const stored = snapshot.data()?.shifts;
 
     if (stored?.current !== balance.current || stored?.max !== balance.max || stored?.lastRefillDate !== today) {
@@ -70,6 +72,7 @@ export async function startShift(uid: string, specialty: string, requestId: stri
   const userRef = firestore.collection("users").doc(uid);
   const gameRef = firestore.collection("gameSessions").doc(requestId);
   const today = getShiftDateKey();
+  const limits = await getPlanShiftLimits();
   const preflightUser = await userRef.get();
   if (!preflightUser.exists) throw new PlayerProfileNotFoundError();
   const hasProAccess = preflightUser.data()?.plan === "pro";
@@ -85,14 +88,14 @@ export async function startShift(uid: string, specialty: string, requestId: stri
       const balance = await transaction.get(userRef);
       return {
         gameId: gameRef.id,
-        shifts: readBalance(balance.data(), today),
+        shifts: readBalance(balance.data(), today, limits),
       };
     }
 
     const userSnapshot = await transaction.get(userRef);
     if (!userSnapshot.exists) throw new PlayerProfileNotFoundError();
     if (userSnapshot.data()?.plan !== "pro" && PRO_CASE_SPECIALTIES.includes(clinicalCase.specialty)) throw new ProPlanRequiredError();
-    const balance = readBalance(userSnapshot.data(), today);
+    const balance = readBalance(userSnapshot.data(), today, limits);
     if (balance.current <= 0) throw new NoShiftsAvailableError();
 
     const updatedBalance = { ...balance, current: balance.current - 1 };

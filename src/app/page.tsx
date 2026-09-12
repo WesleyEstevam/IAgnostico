@@ -2,9 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { Logo } from "@/presentation/components/shared/logo";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
+import { getPublicPlans } from "@/core/admin/plan-admin-service";
+import { PricingSection } from "@/presentation/components/landing/pricing-section";
 
 export default async function Landing() {
-  const user = await getCurrentFirebaseUser();
+  const [user, plans] = await Promise.all([getCurrentFirebaseUser(), getPublicPlans()]);
   const ctaHref = user ? "/dashboard" : "/login";
 
   return (
@@ -405,58 +407,7 @@ export default async function Landing() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="planos" className="mx-auto max-w-5xl scroll-mt-8 px-4 py-20 sm:px-6">
-        <div className="text-center">
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-            Comece grátis. Evolua quando quiser.
-          </h2>
-          <p className="mt-3 text-muted-foreground">Sem cartão de crédito. Sem complicação.</p>
-        </div>
-        <div className="mt-10 grid md:grid-cols-2 gap-5">
-          <div className="card-pop card-jelly p-8">
-            <div className="text-sm font-extrabold uppercase tracking-wider text-muted-foreground">
-              Gratuito
-            </div>
-            <div className="mt-2 text-4xl font-extrabold">R$ 0</div>
-            <p className="mt-1 text-sm text-muted-foreground font-bold">para sempre</p>
-            <ul className="mt-6 space-y-2 text-sm font-bold">
-              <li>✓ 3 casos por dia</li>
-              <li>✓ XP, streak e ranking</li>
-              <li>✓ 3 especialidades</li>
-            </ul>
-            <Link
-              href={ctaHref}
-              className="mt-8 btn-pop w-full bg-muted text-foreground shadow-[var(--shadow-pop-muted)]"
-            >
-              {user ? "Acessar dashboard" : "Começar grátis"}
-            </Link>
-          </div>
-          <div id="plano-pro" className="card-pop card-jelly relative scroll-mt-8 overflow-hidden border-primary/40 bg-gradient-to-br from-accent/40 to-card p-8">
-            <div className="absolute top-4 right-4 rounded-full bg-xp text-xp-foreground px-3 py-1 text-[10px] font-extrabold uppercase animate-pop-badge">
-              Mais popular
-            </div>
-            <div className="text-sm font-extrabold uppercase tracking-wider text-primary">Pro</div>
-            <div className="mt-2 text-4xl font-extrabold">
-              R$ 49,90<span className="text-base text-muted-foreground">/mês</span>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground font-bold">cancele quando quiser</p>
-            <ul className="mt-6 space-y-2 text-sm font-bold">
-              <li>✓ 10 casos por dia</li>
-              <li>✓ +10 especialidades</li>
-              <li>✓ Feedback avançado da IA</li>
-              <li>✓ Trilha personalizada de residência</li>
-              <li>✓ Análise de imagens</li>
-            </ul>
-            <Link
-              href={ctaHref}
-              className="mt-8 btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)]"
-            >
-              Assinar Pro
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PricingSection plans={plans} ctaHref={ctaHref} authenticated={Boolean(user)} />
 
       <footer className="border-t-2 border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
