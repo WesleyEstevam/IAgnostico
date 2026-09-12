@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getFirebaseAdminAuth, getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import { FAVORITE_SPECIALTY_IDS, getProfileAvatarSrc, PROFILE_AVATAR_IDS } from "@/shared/constants/profile";
+import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
 
 const birthDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   const date = new Date(`${value}T12:00:00Z`);
@@ -18,13 +19,8 @@ const profileSchema = z.object({
   favoriteSpecialty: z.enum(FAVORITE_SPECIALTY_IDS).nullable(),
 });
 
-function sameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  return !origin || origin === request.nextUrl.origin;
-}
-
 export async function PATCH(request: NextRequest) {
-  if (!sameOrigin(request)) {
+  if (!isAllowedRequestOrigin(request)) {
     return NextResponse.json({ error: "Origem não autorizada." }, { status: 403 });
   }
 

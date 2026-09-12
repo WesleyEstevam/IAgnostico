@@ -8,14 +8,14 @@ import {
   PatientChatLimitError,
   PatientChatNotFoundError,
 } from "@/core/cases/patient-chat-service";
+import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
 
 const chatSchema = z.object({
   message: z.string().trim().min(1).max(500),
 });
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ gameId: string }> }) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
+  if (!isAllowedRequestOrigin(request)) {
     return NextResponse.json({ error: "Origem não autorizada." }, { status: 403 });
   }
 

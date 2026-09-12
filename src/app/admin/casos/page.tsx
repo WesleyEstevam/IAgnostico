@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentAdmin } from "@/core/admin/admin-service";
 import { listClinicalCasesForAdmin } from "@/core/admin/clinical-case-admin-service";
-import { Navbar } from "@/presentation/components/shared/navbar";
 import { CaseForm } from "./case-form";
 import { changeCaseStatusAction } from "./actions";
 
@@ -15,7 +14,6 @@ export default async function AdminCasesPage() {
   const totals = cases.reduce((result, item) => ({ ...result, [item.status]: (result[item.status] ?? 0) + 1 }), {} as Record<string, number>);
 
   return <div className="min-h-screen bg-background">
-    <Navbar />
     <main className="mx-auto max-w-7xl space-y-7 px-4 py-8 sm:px-6">
       <div><div className="inline-flex rounded-full bg-primary/15 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-primary">Administração</div><h1 className="mt-3 text-4xl font-extrabold">Casos clínicos</h1><p className="font-bold text-muted-foreground">{cases.length} casos · {totals.published ?? 0} publicados · {totals.draft ?? 0} rascunhos</p></div>
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(24rem,0.85fr)]">

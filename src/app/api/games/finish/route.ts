@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import { finishGameSession, GameSessionForbiddenError, GameSessionNotFoundError } from "@/core/cases/case-service";
+import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
 
 const finishSchema = z.object({
   gameId: z.string().uuid(),
@@ -10,8 +11,7 @@ const finishSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
+  if (!isAllowedRequestOrigin(request)) {
     return NextResponse.json({ error: "Origem não autorizada." }, { status: 403 });
   }
 

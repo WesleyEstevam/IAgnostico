@@ -10,16 +10,12 @@ import {
 } from "@/shared/constants/auth";
 import { FREE_PLAN_MAX_SHIFTS, getRefreshedShiftBalance, getShiftDateKey } from "@/core/shifts/shift-service";
 import { getProfileAvatarSrc } from "@/shared/constants/profile";
+import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
 
 const sessionSchema = z.object({ idToken: z.string().min(1) });
 
-function sameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  return !origin || origin === request.nextUrl.origin;
-}
-
 export async function POST(request: NextRequest) {
-  if (!sameOrigin(request)) {
+  if (!isAllowedRequestOrigin(request)) {
     return NextResponse.json({ error: "Origem não autorizada." }, { status: 403 });
   }
 
@@ -130,14 +126,14 @@ export async function GET() {
       displayName: typeof profileData?.displayName === "string" ? profileData.displayName : user.name ?? null,
       photoURL: getProfileAvatarSrc(profileData?.avatarId) ?? (typeof profileData?.photoURL === "string" ? profileData.photoURL : typeof user.picture === "string" ? user.picture : null),
       emailVerified: user.email_verified === true,
-      role: profileData?.role === "admin" ? "admin" : "player",
+      role: ["superadmin", "admin", "support"].includes(profileData?.role) ? profileData?.role : "player",
     },
     shifts,
   });
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!sameOrigin(request)) {
+  if (!isAllowedRequestOrigin(request)) {
     return NextResponse.json({ error: "Origem não autorizada." }, { status: 403 });
   }
 

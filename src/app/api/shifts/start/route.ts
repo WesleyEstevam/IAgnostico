@@ -8,6 +8,7 @@ import {
   startShift,
 } from "@/core/shifts/shift-service";
 import { ClinicalCaseNotFoundError } from "@/core/cases/clinical-case-service";
+import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
 
 const startShiftSchema = z.object({
   specialty: z.enum(["cardiologia", "clinica-geral", "infectologia", "pediatria", "ginecologia-obstetricia", "anestesiologia", "ortopedia", "radiologia", "oncologia", "dermatologia", "aleatorio"]),
@@ -15,8 +16,7 @@ const startShiftSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
+  if (!isAllowedRequestOrigin(request)) {
     return NextResponse.json({ error: "Origem não autorizada." }, { status: 403 });
   }
 

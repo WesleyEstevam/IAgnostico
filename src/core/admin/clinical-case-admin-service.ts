@@ -14,21 +14,50 @@ export async function listClinicalCasesForAdmin(): Promise<AdminCaseSummary[]> {
 }
 
 export async function createClinicalCaseDraft(data: ClinicalCaseDocument, adminUid: string) {
-  const reference = getFirebaseAdminFirestore().collection("clinicalCases").doc();
-  await reference.create({
+  const firestore = getFirebaseAdminFirestore();
+  const reference = firestore.collection("clinicalCases").doc();
+  const auditRef = firestore.collection("adminAuditLogs").doc();
+  const batch = firestore.batch();
+  batch.create(reference, {
     ...data,
     status: "draft",
     createdBy: adminUid,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   });
+  batch.create(auditRef, {
+    actorUid: adminUid,
+    action: "clinical_case.created",
+    targetType: "clinicalCase",
+    targetId: reference.id,
+    before: null,
+    after: { title: data.title, specialty: data.specialty, status: "draft" },
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  await batch.commit();
   return reference.id;
 }
 
 export async function setClinicalCaseStatus(caseId: string, status: "draft" | "published" | "archived", adminUid: string) {
-  await getFirebaseAdminFirestore().collection("clinicalCases").doc(caseId).update({
+  const firestore = getFirebaseAdminFirestore();
+  const reference = firestore.collection("clinicalCases").doc(caseId);
+  const current = await reference.get();
+  if (!current.exists) throw new Error("Caso clínico não encontrado.");
+  const auditRef = firestore.collection("adminAuditLogs").doc();
+  const batch = firestore.batch();
+  batch.update(reference, {
     status,
     updatedBy: adminUid,
     updatedAt: FieldValue.serverTimestamp(),
   });
+  batch.create(auditRef, {
+    actorUid: adminUid,
+    action: "clinical_case.status_changed",
+    targetType: "clinicalCase",
+    targetId: caseId,
+    before: { status: current.data()?.status ?? null },
+    after: { status },
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  await batch.commit();
 }

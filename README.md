@@ -10,6 +10,7 @@ Frontend do IAgnóstico migrado para Next.js App Router, TypeScript, Tailwind CS
 - `/dashboard` — hub gamificado (requer sessão)
 - `/caso` — caso clínico interativo (demo local)
 - `/evolucao` — desempenho e histórico
+- `/admin` — painel administrativo protegido por papel e permissão
 
 ## Arquitetura
 
@@ -45,7 +46,11 @@ O chat do caso clínico aceita OpenAI ou Gemini e acessa o provedor somente no s
 3. Crie o banco Cloud Firestore e publique `firestore.rules` antes de usar dados reais.
 4. Publique também `firestore.indexes.json`; o índice de partidas por usuário e data é necessário para o histórico e os gráficos de evolução.
 5. Execute `npm run seed:cases` uma vez para publicar o catálogo `mvp-2`, com 85 cenários clínicos distintos: 30 de Cardiologia, 30 de Clínica Geral e 25 de Infectologia. O comando valida e substitui somente documentos gerenciados por versões anteriores do seed, preservando casos manuais.
-6. Para liberar o painel de casos para um usuário já cadastrado, execute `npm run grant:admin -- usuario@exemplo.com`. O acesso é verificado novamente no servidor em cada operação administrativa.
+6. Para liberar o painel para um usuário já cadastrado, execute `npm run grant:admin -- usuario@exemplo.com admin`. Os papéis aceitos são `superadmin`, `admin` e `support`; as permissões são verificadas novamente no servidor em cada operação.
+
+## Painel administrativo
+
+A arquitetura, estratégia incremental, modelo de papéis e configuração do subdomínio estão documentados em [`docs/admin-architecture.md`](docs/admin-architecture.md). O mesmo projeto Vercel pode atender `iagnostico.com.br` e `adm.iagnostico.com.br`; o proxy reescreve o subdomínio administrativo para o namespace protegido `/admin`.
 
 Nunca versione `.env.local` ou o JSON da conta de serviço.
 

@@ -126,12 +126,12 @@ export function Navbar() {
                 >
                   Ranking
                 </Link>
-                {isAuthenticated.user.role === "admin" && (
+                {isAuthenticated.user.role !== "player" && (
                   <Link
-                    href="/admin/casos"
+                    href="/admin"
                     className="block rounded-xl px-3 py-2 text-xs font-extrabold text-primary hover:bg-primary/10"
                   >
-                    Administrar casos
+                    Painel administrativo
                   </Link>
                 )}
                 <button
