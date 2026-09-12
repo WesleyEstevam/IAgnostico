@@ -5,8 +5,8 @@ import type { StaffRole } from "@/core/admin/admin-service";
 import { AdminLogoutButton } from "./admin-logout-button";
 
 const roleLabels: Record<StaffRole, string> = { superadmin: "Superadministrador", admin: "Administrador", support: "Atendimento / Suporte" };
-const available = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }, { href: "/admin/usuarios", label: "Usuários", icon: Users }, { href: "/admin/casos", label: "Casos clínicos", icon: BookOpenText }, { href: "/admin/planos", label: "Planos e assinaturas", icon: CreditCard }];
-const upcoming = [{ label: "Atendimento", icon: Headphones }, { label: "SEO e conteúdo", icon: BarChart3 }, { label: "Auditoria", icon: ScrollText }, { label: "Configurações", icon: Settings }];
+const available = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "admin", "support"] }, { href: "/admin/usuarios", label: "Usuários", icon: Users, roles: ["superadmin", "admin", "support"] }, { href: "/admin/casos", label: "Casos clínicos", icon: BookOpenText, roles: ["superadmin", "admin"] }, { href: "/admin/planos", label: "Planos e assinaturas", icon: CreditCard, roles: ["superadmin", "admin"] }, { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText, roles: ["superadmin", "admin"] }];
+const upcoming = [{ label: "Atendimento", icon: Headphones }, { label: "SEO e conteúdo", icon: BarChart3 }, { label: "Configurações", icon: Settings }];
 
 export function AdminShell({ children, role, displayName }: { children: React.ReactNode; role: StaffRole; displayName: string }) {
   return <div className="min-h-screen bg-background lg:grid lg:grid-cols-[17rem_1fr]">
@@ -16,7 +16,7 @@ export function AdminShell({ children, role, displayName }: { children: React.Re
         <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-extrabold uppercase text-primary">Admin</span>
       </div>
       <nav aria-label="Navegação administrativa" className="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1 lg:overflow-visible lg:pb-0">
-        {available.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className="flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-extrabold text-muted-foreground transition hover:bg-primary/10 hover:text-primary"><Icon className="h-4 w-4" />{label}</Link>)}
+        {available.filter((item) => item.roles.includes(role)).map(({ href, label, icon: Icon }) => <Link key={href} href={href} className="flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-extrabold text-muted-foreground transition hover:bg-primary/10 hover:text-primary"><Icon className="h-4 w-4" />{label}</Link>)}
         {upcoming.map(({ label, icon: Icon }) => <span key={label} className="flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-muted-foreground/45"><Icon className="h-4 w-4" />{label}<small className="ml-auto hidden text-[9px] uppercase lg:block">Em breve</small></span>)}
       </nav>
       <div className="hidden border-t border-border p-4 lg:absolute lg:inset-x-0 lg:bottom-0 lg:flex lg:items-center lg:justify-between lg:gap-2">
