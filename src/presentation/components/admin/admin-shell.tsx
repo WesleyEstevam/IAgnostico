@@ -5,8 +5,8 @@ import type { StaffRole } from "@/core/admin/admin-service";
 import { AdminLogoutButton } from "./admin-logout-button";
 
 const roleLabels: Record<StaffRole, string> = { superadmin: "Superadministrador", admin: "Administrador", support: "Atendimento / Suporte" };
-const available = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "admin", "support"] }, { href: "/admin/usuarios", label: "Usuários", icon: Users, roles: ["superadmin", "admin", "support"] }, { href: "/admin/casos", label: "Casos clínicos", icon: BookOpenText, roles: ["superadmin", "admin"] }, { href: "/admin/planos", label: "Planos e assinaturas", icon: CreditCard, roles: ["superadmin", "admin"] }, { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText, roles: ["superadmin", "admin"] }];
-const upcoming = [{ label: "Atendimento", icon: Headphones }, { label: "SEO e conteúdo", icon: BarChart3 }, { label: "Configurações", icon: Settings }];
+const available = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "admin", "support"] }, { href: "/admin/usuarios", label: "Usuários", icon: Users, roles: ["superadmin", "admin", "support"] }, { href: "/admin/casos", label: "Casos clínicos", icon: BookOpenText, roles: ["superadmin", "admin"] }, { href: "/admin/planos", label: "Planos e assinaturas", icon: CreditCard, roles: ["superadmin", "admin"] }, { href: "/admin/seo-conteudo", label: "SEO e conteúdo", icon: BarChart3, roles: ["superadmin", "admin"] }, { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText, roles: ["superadmin", "admin"] }];
+const upcoming = [{ label: "Atendimento", icon: Headphones }, { label: "Configurações", icon: Settings }];
 
 export function AdminShell({ children, role, displayName }: { children: React.ReactNode; role: StaffRole; displayName: string }) {
   return <div className="min-h-screen bg-background lg:grid lg:grid-cols-[17rem_1fr]">

@@ -6,12 +6,12 @@ import type { PublicPlan } from "@/core/admin/plan-admin-service";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-export function PricingSection({ plans, ctaHref, authenticated }: { plans: PublicPlan[]; ctaHref: string; authenticated: boolean }) {
+export function PricingSection({ plans, ctaHref, authenticated, title, description }: { plans: PublicPlan[]; ctaHref: string; authenticated: boolean; title: string; description: string }) {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const activePlans = plans.filter((plan) => plan.active);
   const annualDiscount = Math.max(0, ...activePlans.filter((plan) => plan.priceCents > 0).map((plan) => plan.annualDiscountPercent));
   return <section id="planos" className="mx-auto max-w-5xl scroll-mt-8 px-4 py-20 sm:px-6">
-    <div className="text-center"><h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">Comece grátis. Evolua quando quiser.</h2><p className="mt-3 text-muted-foreground">Sem complicação. Cancele quando quiser.</p></div>
+    <div className="text-center"><h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">{title}</h2><p className="mt-3 text-muted-foreground">{description}</p></div>
     <div className="mt-12 flex justify-center"><div className="inline-grid grid-cols-2 rounded-2xl border-2 border-border bg-muted p-1.5 font-extrabold">
       <button type="button" onClick={() => setBilling("monthly")} aria-pressed={billing === "monthly"} className={`rounded-xl px-6 py-2.5 text-sm transition ${billing === "monthly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>Mensal</button>
       <div className="relative"><span className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-2.5 py-1 text-[10px] font-black uppercase text-primary-foreground shadow-sm">Economize até {annualDiscount}%</span><button type="button" onClick={() => setBilling("annual")} aria-pressed={billing === "annual"} className={`rounded-xl px-6 py-2.5 text-sm transition ${billing === "annual" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>Anual</button></div>

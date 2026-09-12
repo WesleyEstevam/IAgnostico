@@ -18,7 +18,7 @@ function serializable(value: unknown): unknown {
 export async function listAuditLogs(input: { category?: string; actor?: string; search?: string; from?: string; to?: string; page?: number }) {
   const firestore = getFirebaseAdminFirestore();
   const snapshot = await firestore.collection("adminAuditLogs").orderBy("createdAt", "desc").limit(1000).get();
-  const category = ["user", "clinical_case", "plan", "staff"].includes(input.category ?? "") ? input.category ?? "" : "";
+  const category = ["user", "clinical_case", "clinicalCase", "plan", "staff", "siteContent"].includes(input.category ?? "") ? input.category ?? "" : "";
   const actor = (input.actor ?? "").trim();
   const search = (input.search ?? "").trim().toLocaleLowerCase("pt-BR");
   const fromTime = input.from && /^\d{4}-\d{2}-\d{2}$/.test(input.from) ? new Date(`${input.from}T00:00:00-03:00`).getTime() : null;

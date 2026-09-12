@@ -1,16 +1,27 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { Logo } from "@/presentation/components/shared/logo";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import { getPublicPlans } from "@/core/admin/plan-admin-service";
 import { PricingSection } from "@/presentation/components/landing/pricing-section";
+import { getSiteContent } from "@/core/admin/site-content-service";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getSiteContent();
+  const socialImage = new URL(content.socialImageUrl, content.canonicalUrl).toString();
+  const logo = new URL(content.logoSquareUrl, content.canonicalUrl).toString();
+  return { title: { absolute: content.seoTitle }, description: content.seoDescription, keywords: content.seoKeywords, alternates: { canonical: content.canonicalUrl }, robots: { index: content.allowIndexing, follow: content.allowIndexing }, icons: { icon: logo, apple: logo }, openGraph: { type: "website", locale: "pt_BR", url: content.canonicalUrl, siteName: "IAgnóstico", title: content.seoTitle, description: content.seoDescription, images: [{ url: socialImage, width: 1200, height: 630, alt: content.seoTitle }] }, twitter: { card: "summary_large_image", title: content.seoTitle, description: content.seoDescription, images: [socialImage] } };
+}
 
 export default async function Landing() {
-  const [user, plans] = await Promise.all([getCurrentFirebaseUser(), getPublicPlans()]);
+  const [user, plans, content] = await Promise.all([getCurrentFirebaseUser(), getPublicPlans(), getSiteContent()]);
   const ctaHref = user ? "/dashboard" : "/login";
+  const organizationSchema = { "@context": "https://schema.org", "@type": "Organization", name: "IAgnóstico", url: content.canonicalUrl, logo: new URL(content.logoSquareUrl, content.canonicalUrl).toString() };
 
   return (
     <div className="min-h-screen bg-background">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/</g, "\\u003c") }} />
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary blob" />
@@ -27,25 +38,24 @@ export default async function Landing() {
               className="h-20 w-auto object-contain sm:h-24"
             />
             <h1 className="mt-5 text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[0.95]">
-              Treine raciocínio clínico
-              <span className="block text-primary">todos os dias.</span>
+              {content.heroTitle}
+              <span className="block text-primary">{content.heroHighlight}</span>
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-xl">
-              Converse com pacientes simulados por IA, peça exames, formule hipóteses e evolua como
-              em um jogo. Feito para estudantes de medicina, internos e residência.
+              {content.heroDescription}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href={ctaHref}
                 className="btn-pop bg-primary text-primary-foreground text-base shadow-[var(--shadow-pop)] animate-glow-pulse"
               >
-                {user ? "Acessar dashboard" : "Começar gratuitamente"}
+                {user ? "Acessar dashboard" : content.primaryCta}
               </Link>
               <Link
                 href={ctaHref}
                 className="btn-pop bg-card border-2 border-border text-foreground text-base shadow-[var(--shadow-pop-muted)]"
               >
-                Ver caso demo
+                {content.secondaryCta}
               </Link>
             </div>
             <div className="mt-8 flex items-center gap-6 text-sm text-muted-foreground">
@@ -59,7 +69,7 @@ export default async function Landing() {
                 ))}
               </div>
               <span>
-                <b className="text-foreground">+5.000</b> estudantes treinando agora
+                {content.socialProof}
               </span>
             </div>
           </div>
@@ -165,13 +175,13 @@ export default async function Landing() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
         <div className="text-center max-w-2xl mx-auto">
           <div className="inline-flex rounded-full bg-info/15 text-info px-3 py-1 text-xs font-bold uppercase tracking-wider">
-            Como funciona
+            {content.featuresEyebrow}
           </div>
           <h2 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight">
-            Treine diagnósticos clínicos com IA
+            {content.featuresTitle}
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Cada caso é uma missão. Cada acerto, um passo a mais rumo à residência.
+            {content.featuresDescription}
           </p>
         </div>
 
@@ -223,11 +233,10 @@ export default async function Landing() {
               Gamificação
             </div>
             <h2 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight">
-              Estude porque você <span className="text-primary">quer</span>.
+              {content.gamificationTitle}
             </h2>
             <p className="mt-4 text-muted-foreground text-lg">
-              XP, níveis, streaks diários e conquistas por especialidade. A meta clínica vira hábito
-              sem você perceber.
+              {content.gamificationDescription}
             </p>
             <ul className="mt-6 space-y-3">
               {[
@@ -344,11 +353,10 @@ export default async function Landing() {
               Comunidade
             </div>
             <h2 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight">
-              Compita com sua turma.
+              {content.communityTitle}
             </h2>
             <p className="mt-4 text-muted-foreground text-lg">
-              Ranking por universidade, especialidade e ligas semanais. Ninguém quer perder o topo
-              da turma.
+              {content.communityDescription}
             </p>
             <Link
               href={ctaHref}
@@ -363,7 +371,7 @@ export default async function Landing() {
       {/* TESTIMONIALS */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
         <h2 className="text-center text-4xl sm:text-5xl font-extrabold tracking-tight">
-          O que dizem os estudantes
+          {content.testimonialsTitle}
         </h2>
         <div className="mt-12 grid md:grid-cols-3 gap-5 stagger">
           {[
@@ -407,13 +415,13 @@ export default async function Landing() {
         </div>
       </section>
 
-      <PricingSection plans={plans} ctaHref={ctaHref} authenticated={Boolean(user)} />
+      <PricingSection plans={plans} ctaHref={ctaHref} authenticated={Boolean(user)} title={content.pricingTitle} description={content.pricingDescription} />
 
       <footer className="border-t-2 border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Logo />
           <p className="text-sm text-muted-foreground font-bold">
-            © 2026 IAgnóstico · feito por estudantes, para estudantes.
+            {content.footerText}
           </p>
         </div>
       </footer>
