@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { CircleHelp } from "lucide-react";
 import { Logo } from "./logo";
 import {
   getAuthSnapshot,
@@ -68,7 +69,8 @@ export function Navbar() {
         {!isAuthenticated && <span className="w-24" aria-hidden="true" />}
         <Logo className="absolute left-1/2 -translate-x-1/2 max-sm:[&_img]:h-9" />
         {isAuthenticated ? (
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <Link href="/ajuda" aria-label="Ajuda e suporte" className="btn-pop h-10 gap-2 bg-primary/10 px-3 text-xs text-primary shadow-[0_3px_0_0_color-mix(in_srgb,var(--primary)_30%,transparent)] hover:bg-primary/15"><CircleHelp className="h-5 w-5" /><span className="hidden lg:inline">Ajuda</span></Link>
             <details className="group relative">
               <summary className="flex cursor-pointer list-none items-center gap-2 rounded-2xl border border-border bg-card px-1.5 py-1.5 transition-colors hover:bg-muted sm:px-2 [&::-webkit-details-marker]:hidden">
                 <span
@@ -147,6 +149,7 @@ export function Navbar() {
           </div>
         ) : (
           <div className="flex items-center gap-2">
+            <Link href="/ajuda" aria-label="Ajuda e suporte" className="btn-pop h-10 gap-2 bg-primary/10 px-3 text-xs text-primary shadow-[0_3px_0_0_color-mix(in_srgb,var(--primary)_30%,transparent)]"><CircleHelp className="h-5 w-5" /><span className="hidden lg:inline">Ajuda</span></Link>
             <Link
               href="/login"
               className="hidden sm:inline-flex btn-pop bg-muted text-foreground text-xs shadow-[var(--shadow-pop-muted)]"

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { CircleHelp } from "lucide-react";
 import { Logo } from "@/presentation/components/shared/logo";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import { getPublicPlans } from "@/core/admin/plan-admin-service";
@@ -22,6 +23,7 @@ export default async function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/</g, "\\u003c") }} />
+      <Link href="/ajuda" className="btn-pop fixed right-4 top-4 z-50 gap-2 bg-card px-4 py-3 text-xs text-primary shadow-[var(--shadow-pop-muted)] sm:right-6 sm:top-6"><CircleHelp className="h-5 w-5" />Ajuda e suporte</Link>
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary blob" />
