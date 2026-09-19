@@ -62,45 +62,63 @@ export async function getTurnstileSecret() {
     : "";
 }
 
-export async function updateSupportSettings(
-  input: { subjects: SupportSubject[]; siteKey: string; secretKey?: string },
-  actorUid: string,
-) {
+export async function updateSupportSubjects(subjects: SupportSubject[], actorUid: string) {
   const firestore = getFirebaseAdminFirestore();
   const publicRef = firestore.collection("supportSettings").doc("public");
-  const privateRef = firestore.collection("privateSettings").doc("turnstile");
   const previous = await publicRef.get();
   const batch = firestore.batch();
   batch.set(
     publicRef,
     {
-      subjects: input.subjects,
-      turnstileSiteKey: input.siteKey,
+      subjects,
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: actorUid,
     },
     { merge: true },
   );
-  if (input.secretKey)
-    batch.set(
-      privateRef,
-      { secretKey: input.secretKey, updatedAt: FieldValue.serverTimestamp(), updatedBy: actorUid },
-      { merge: true },
-    );
   batch.create(firestore.collection("adminAuditLogs").doc(), {
     actorUid,
-    action: "support.settings_updated",
+    action: "support.subjects_updated",
     targetType: "supportSettings",
     targetId: "public",
-    before: previous.exists
-      ? {
-          subjects: previous.data()?.subjects ?? [],
-          siteKeyConfigured: Boolean(previous.data()?.turnstileSiteKey),
-        }
-      : null,
+    before: previous.exists ? { subjects: previous.data()?.subjects ?? [] } : null,
+    after: { subjects },
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  await batch.commit();
+}
+
+export async function updateTurnstileSettings(
+  input: { siteKey: string; secretKey?: string },
+  actorUid: string,
+) {
+  const firestore = getFirebaseAdminFirestore();
+  const publicRef = firestore.collection("supportSettings").doc("public");
+  const privateRef = firestore.collection("privateSettings").doc("turnstile");
+  const [previousPublic, previousPrivate] = await Promise.all([publicRef.get(), privateRef.get()]);
+  const batch = firestore.batch();
+  batch.set(publicRef, {
+    turnstileSiteKey: input.siteKey,
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedBy: actorUid,
+  }, { merge: true });
+  if (input.secretKey) batch.set(privateRef, {
+    secretKey: input.secretKey,
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedBy: actorUid,
+  }, { merge: true });
+  batch.create(firestore.collection("adminAuditLogs").doc(), {
+    actorUid,
+    action: "application_settings.turnstile_updated",
+    targetType: "applicationSettings",
+    targetId: "turnstile",
+    before: {
+      siteKeyConfigured: Boolean(previousPublic.data()?.turnstileSiteKey),
+      secretConfigured: Boolean(previousPrivate.data()?.secretKey),
+    },
     after: {
-      subjects: input.subjects,
       siteKeyConfigured: Boolean(input.siteKey),
+      secretConfigured: Boolean(input.secretKey) || Boolean(previousPrivate.data()?.secretKey),
       secretUpdated: Boolean(input.secretKey),
     },
     createdAt: FieldValue.serverTimestamp(),

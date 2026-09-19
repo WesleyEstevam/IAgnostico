@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import { Building2, Globe2, LoaderCircle, Megaphone, Save, ShieldCheck } from "lucide-react";
+import { Building2, Cloud, Globe2, LoaderCircle, Megaphone, Save, ShieldCheck } from "lucide-react";
 import type { ApplicationSettings } from "@/core/admin/application-settings-service";
-import { updateApplicationSettingsAction, type SettingsActionState } from "./actions";
+import { updateApplicationSettingsAction, updateTurnstileSettingsAction, type SettingsActionState } from "./actions";
 
 const field = "mt-1.5 h-11 w-full rounded-xl border-2 border-border bg-background px-3 text-sm font-bold outline-none focus:border-primary";
 
@@ -43,6 +43,23 @@ export function SettingsForm({ settings }: { settings: ApplicationSettings }) {
     {state.error && <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm font-extrabold text-destructive">{state.error}</p>}
     {state.success && <p role="status" className="rounded-xl bg-primary/10 px-4 py-3 text-sm font-extrabold text-primary">{state.success}</p>}
     <button disabled={pending} className="btn-pop gap-2 bg-primary px-6 text-xs text-primary-foreground shadow-[var(--shadow-pop)] disabled:opacity-60">{pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{pending ? "Salvando..." : "Salvar configurações"}</button>
+  </form>;
+}
+
+export function TurnstileSettingsForm({ siteKey, secretConfigured }: { siteKey: string; secretConfigured: boolean }) {
+  const [state, action, pending] = useActionState(updateTurnstileSettingsAction, {} as SettingsActionState);
+  return <form action={action} className="card-pop space-y-5 p-5 sm:p-6">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <SectionTitle icon={Cloud} title="Cloudflare Turnstile" description="Credenciais do captcha utilizado para proteger o formulário público de suporte." />
+      <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase ${siteKey && secretConfigured ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>{siteKey && secretConfigured ? "Integração configurada" : "Configuração pendente"}</span>
+    </div>
+    <div className="grid gap-4 sm:grid-cols-2">
+      <label className="text-sm font-extrabold">Site Key<input name="siteKey" defaultValue={siteKey} required autoComplete="off" maxLength={200} className={field} /><small className="mt-1 block text-xs text-muted-foreground">Esta chave é pública e carregada no formulário de ajuda.</small></label>
+      <label className="text-sm font-extrabold">Secret Key<input name="secretKey" type="password" autoComplete="new-password" maxLength={300} placeholder={secretConfigured ? "Já configurada — preencha apenas para substituir" : "Informe a Secret Key"} className={field} /><small className="mt-1 block text-xs text-muted-foreground">A chave secreta é salva separadamente e nunca é exibida novamente.</small></label>
+    </div>
+    {state.error && <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm font-extrabold text-destructive">{state.error}</p>}
+    {state.success && <p role="status" className="rounded-xl bg-primary/10 px-4 py-3 text-sm font-extrabold text-primary">{state.success}</p>}
+    <button disabled={pending} className="btn-pop gap-2 bg-primary px-6 text-xs text-primary-foreground shadow-[var(--shadow-pop)] disabled:opacity-60">{pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{pending ? "Salvando..." : "Salvar integração"}</button>
   </form>;
 }
 

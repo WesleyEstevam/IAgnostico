@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requirePermission } from "@/core/admin/admin-service";
 import { createSupportTicket, replySupportTicket, updateSupportTicket } from "@/core/admin/support-service";
-import { updateSupportSettings } from "@/core/admin/support-settings-service";
+import { updateSupportSubjects } from "@/core/admin/support-settings-service";
 
 export type SupportActionState = { success?: string; error?: string; ticketId?: string };
 const ticketIdSchema = z.string().min(1).max(128);
@@ -51,17 +51,17 @@ export async function replyTicketAction(ticketId: string, _state: SupportActionS
   } catch (error) { return { error: error instanceof Error ? error.message : "Não foi possível enviar a resposta." }; }
 }
 
-const settingsSchema = z.object({ subjects: z.string().trim().min(2).max(3000), siteKey: z.string().trim().min(3).max(200), secretKey: z.string().trim().max(300) });
+const settingsSchema = z.object({ subjects: z.string().trim().min(2).max(3000) });
 export async function updateSupportSettingsAction(_state: SupportActionState, formData: FormData): Promise<SupportActionState> {
   try {
     const staff = await requirePermission("support.manage");
     const parsed = settingsSchema.safeParse(Object.fromEntries(formData));
-    if (!parsed.success) return { error: "Informe ao menos um assunto e uma Site Key válida." };
+    if (!parsed.success) return { error: "Informe ao menos um assunto para o atendimento." };
     const labels = parsed.data.subjects.split("\n").map((item) => item.trim()).filter(Boolean);
     const subjects = [...new Set(labels)].slice(0, 30).map((label, index) => ({ id: `${label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 45) || "assunto"}-${index + 1}`, label: label.slice(0, 100), active: true }));
-    await updateSupportSettings({ subjects, siteKey: parsed.data.siteKey, secretKey: parsed.data.secretKey || undefined }, staff.user.uid);
+    await updateSupportSubjects(subjects, staff.user.uid);
     revalidatePath("/admin/atendimento");
     revalidatePath("/ajuda");
-    return { success: "Assuntos e integração Turnstile atualizados." };
+    return { success: "Assuntos do atendimento atualizados." };
   } catch (error) { return { error: error instanceof Error ? error.message : "Não foi possível salvar as configurações." }; }
 }

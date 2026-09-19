@@ -85,8 +85,6 @@ export default async function SupportPage({
       </section>
       <SupportSettingsForm
         subjects={settings.subjects}
-        siteKey={settings.siteKey}
-        secretConfigured={settings.secretConfigured}
       />
       <CreateTicketForm />
       <form className="card-pop grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-[1fr_11rem_10rem_12rem_13rem_auto]">

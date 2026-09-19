@@ -24,6 +24,8 @@ const actionLabels: Record<string, string> = {
   "support.reply_sent": "Resposta de suporte registrada",
   "support.internal_note_added": "Nota interna adicionada",
   "support.settings_updated": "Configurações de atendimento atualizadas",
+  "support.subjects_updated": "Assuntos de atendimento atualizados",
+  "application_settings.turnstile_updated": "Cloudflare Turnstile atualizado",
   "application_settings.updated": "Configurações gerais atualizadas",
 };
 const targetLabels: Record<string, string> = {

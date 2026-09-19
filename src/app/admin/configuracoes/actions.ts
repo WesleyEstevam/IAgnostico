@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requirePermission } from "@/core/admin/admin-service";
 import { updateApplicationSettings } from "@/core/admin/application-settings-service";
+import { updateTurnstileSettings } from "@/core/admin/support-settings-service";
 
 export type SettingsActionState = { success?: string; error?: string };
 
@@ -52,5 +53,30 @@ export async function updateApplicationSettingsAction(
     return { success: "Configurações gerais atualizadas." };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Não foi possível salvar as configurações." };
+  }
+}
+
+const turnstileSchema = z.object({
+  siteKey: z.string().trim().min(3, "Informe a Site Key do Turnstile.").max(200),
+  secretKey: z.string().trim().max(300),
+});
+
+export async function updateTurnstileSettingsAction(
+  _state: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  try {
+    const staff = await requirePermission("settings.manage");
+    const parsed = turnstileSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Revise as credenciais do Turnstile." };
+    await updateTurnstileSettings({
+      siteKey: parsed.data.siteKey,
+      secretKey: parsed.data.secretKey || undefined,
+    }, staff.user.uid);
+    revalidatePath("/admin/configuracoes");
+    revalidatePath("/ajuda");
+    return { success: "Credenciais do Cloudflare Turnstile atualizadas." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Não foi possível atualizar o Turnstile." };
   }
 }

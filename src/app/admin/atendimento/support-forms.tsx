@@ -218,12 +218,8 @@ export function TicketReplyForm({ ticketId }: { ticketId: string }) {
 
 export function SupportSettingsForm({
   subjects,
-  siteKey,
-  secretConfigured,
 }: {
   subjects: SupportSubject[];
-  siteKey: string;
-  secretConfigured: boolean;
 }) {
   const [state, action, pending] = useActionState(
     updateSupportSettingsAction,
@@ -233,11 +229,7 @@ export function SupportSettingsForm({
     <details className="card-pop">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 font-extrabold">
         <span>Configurações do atendimento</span>
-        <span
-          className={`rounded-full px-2.5 py-1 text-[10px] uppercase ${siteKey && secretConfigured ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}
-        >
-          {siteKey && secretConfigured ? "Turnstile configurado" : "Configuração pendente"}
-        </span>
+        <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[10px] uppercase text-primary">Assuntos do formulário</span>
       </summary>
       <form action={action} className="grid gap-4 border-t-2 border-border p-5 sm:grid-cols-2">
         <label className="text-sm font-extrabold sm:col-span-2">
@@ -251,33 +243,6 @@ export function SupportSettingsForm({
           />
           <small className="mt-1 block text-xs text-muted-foreground">
             Um assunto por linha. A ordem será usada no formulário do jogador.
-          </small>
-        </label>
-        <label className="text-sm font-extrabold">
-          Cloudflare Turnstile Site Key
-          <input
-            name="siteKey"
-            defaultValue={siteKey}
-            required
-            autoComplete="off"
-            className={field}
-          />
-        </label>
-        <label className="text-sm font-extrabold">
-          Cloudflare Turnstile Secret Key
-          <input
-            name="secretKey"
-            type="password"
-            placeholder={
-              secretConfigured
-                ? "Já configurada — preencha somente para substituir"
-                : "Informe a Secret Key"
-            }
-            autoComplete="new-password"
-            className={field}
-          />
-          <small className="mt-1 block text-xs text-muted-foreground">
-            A chave secreta nunca é exibida novamente.
           </small>
         </label>
         <div className="space-y-3 sm:col-span-2">
