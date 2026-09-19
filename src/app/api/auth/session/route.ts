@@ -8,10 +8,12 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_DURATION_MS,
 } from "@/shared/constants/auth";
-import { FREE_PLAN_MAX_SHIFTS, getRefreshedShiftBalance, getShiftDateKey } from "@/core/shifts/shift-service";
+import { getRefreshedShiftBalance, getShiftDateKey } from "@/core/shifts/shift-service";
 import { getProfileAvatarSrc } from "@/shared/constants/profile";
 import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
 import { buildUserSearchKeywords, normalizeUserSearch } from "@/core/admin/admin-user-service";
+import { getApplicationSettings } from "@/core/admin/application-settings-service";
+import { getPlanShiftLimits } from "@/core/admin/plan-admin-service";
 
 const sessionSchema = z.object({ idToken: z.string().min(1) });
 
@@ -34,6 +36,14 @@ export async function POST(request: NextRequest) {
     const firestore = getFirebaseAdminFirestore();
     const userRef = firestore.collection("users").doc(decodedToken.uid);
     const playerProfileRef = firestore.collection("playerProfiles").doc(decodedToken.uid);
+    const [existingUser, settings, planLimits] = await Promise.all([
+      userRef.get(),
+      getApplicationSettings(),
+      getPlanShiftLimits(),
+    ]);
+    if (!existingUser.exists && !settings.registrationsEnabled) {
+      return NextResponse.json({ error: "Novos cadastros estão temporariamente fechados." }, { status: 403 });
+    }
     await firestore.runTransaction(async (transaction) => {
       const userSnapshot = await transaction.get(userRef);
       const storedProfile = userSnapshot.data();
@@ -76,8 +86,8 @@ export async function POST(request: NextRequest) {
           ...identity,
           plan: "free",
           shifts: {
-            current: FREE_PLAN_MAX_SHIFTS,
-            max: FREE_PLAN_MAX_SHIFTS,
+            current: planLimits.free,
+            max: planLimits.free,
             lastRefillDate: getShiftDateKey(),
           },
           stats: initialStats,

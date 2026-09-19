@@ -4,15 +4,17 @@ import { Navbar } from "@/presentation/components/shared/navbar";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import { getPublicSupportSettings } from "@/core/admin/support-settings-service";
 import { SupportRequestForm } from "./support-request-form";
+import { getApplicationSettings } from "@/core/admin/application-settings-service";
 
 export const metadata = {
   title: "Ajuda e suporte",
   description: "Abra uma solicitação de atendimento para a equipe IAgnóstico.",
 };
 export default async function HelpPage() {
-  const [user, settings] = await Promise.all([
+  const [user, settings, applicationSettings] = await Promise.all([
     getCurrentFirebaseUser(),
     getPublicSupportSettings(),
+    getApplicationSettings(),
   ]);
   return (
     <div className="min-h-screen bg-background">
@@ -38,6 +40,7 @@ export default async function HelpPage() {
             <ShieldCheck className="h-4 w-4" />
             Seus dados são processados com segurança.
           </p>
+          <p className="mt-2 text-xs font-bold text-muted-foreground">Contato: <a href={`mailto:${applicationSettings.supportEmail}`} className="text-primary hover:underline">{applicationSettings.supportEmail}</a></p>
         </header>
         <SupportRequestForm
           authenticated={Boolean(user)}

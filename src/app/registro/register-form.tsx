@@ -35,6 +35,12 @@ export function RegisterForm() {
       router.replace("/dashboard");
       router.refresh();
     } catch (error) {
+      try {
+        const auth = await getFirebaseAuth();
+        if (auth.currentUser) await signOut(auth);
+      } catch {
+        // Preserve the original registration error shown below.
+      }
       const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
       setErrorMessage(code === "auth/email-already-in-use" ? "Este e-mail já possui uma conta." : error instanceof Error ? error.message : "Não foi possível criar sua conta.");
     } finally {

@@ -2,10 +2,7 @@ import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import {
-  getFirebaseAdminFirestore,
-  getFirebaseAdminStorage,
-} from "@/infrastructure/firebase/admin";
+import { getFirebaseAdminBucket, getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { getTurnstileSecret } from "@/core/admin/support-settings-service";
 
 type Requester = { uid: string; firstName: string; lastName: string; email: string; phone: string };
@@ -84,7 +81,7 @@ export async function uploadSupportAttachment(file: File | null) {
     file.name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 80) || `anexo.${detected.extension}`;
   const path = `support/${new Date().toISOString().slice(0, 10)}/${randomUUID()}-${safeBase}`;
   const token = randomUUID();
-  const bucket = getFirebaseAdminStorage().bucket();
+  const bucket = await getFirebaseAdminBucket();
   await bucket.file(path).save(buffer, {
     resumable: false,
     contentType: detected.contentType,

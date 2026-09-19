@@ -24,6 +24,7 @@ const actionLabels: Record<string, string> = {
   "support.reply_sent": "Resposta de suporte registrada",
   "support.internal_note_added": "Nota interna adicionada",
   "support.settings_updated": "Configurações de atendimento atualizadas",
+  "application_settings.updated": "Configurações gerais atualizadas",
 };
 const targetLabels: Record<string, string> = {
   user: "Usuário",
@@ -34,6 +35,7 @@ const targetLabels: Record<string, string> = {
   siteContent: "SEO e conteúdo",
   supportTicket: "Chamado",
   supportSettings: "Configurações de atendimento",
+  applicationSettings: "Configurações gerais",
 };
 
 export default async function AuditPage({
@@ -105,6 +107,7 @@ export default async function AuditPage({
           <option value="plan">Planos</option>
           <option value="support">Atendimento</option>
           <option value="siteContent">SEO e conteúdo</option>
+          <option value="application_settings">Configurações</option>
           <option value="staff">Administradores</option>
         </select>
         <select

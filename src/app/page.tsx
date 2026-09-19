@@ -1,12 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { CircleHelp } from "lucide-react";
 import { Logo } from "@/presentation/components/shared/logo";
+import { HelpButton } from "@/presentation/components/shared/help-button";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import { getPublicPlans } from "@/core/admin/plan-admin-service";
 import { PricingSection } from "@/presentation/components/landing/pricing-section";
 import { getSiteContent } from "@/core/admin/site-content-service";
+import { getApplicationSettings } from "@/core/admin/application-settings-service";
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
@@ -16,14 +17,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Landing() {
-  const [user, plans, content] = await Promise.all([getCurrentFirebaseUser(), getPublicPlans(), getSiteContent()]);
+  const [user, plans, content, settings] = await Promise.all([getCurrentFirebaseUser(), getPublicPlans(), getSiteContent(), getApplicationSettings()]);
   const ctaHref = user ? "/dashboard" : "/login";
-  const organizationSchema = { "@context": "https://schema.org", "@type": "Organization", name: "IAgnóstico", url: content.canonicalUrl, logo: new URL(content.logoSquareUrl, content.canonicalUrl).toString() };
+  const organizationSchema = { "@context": "https://schema.org", "@type": "Organization", name: settings.productName, legalName: settings.legalName, email: settings.supportEmail, url: content.canonicalUrl, logo: new URL(content.logoSquareUrl, content.canonicalUrl).toString() };
+  const socialLinks = [{ label: "Instagram", href: settings.instagramUrl }, { label: "LinkedIn", href: settings.linkedinUrl }, { label: "YouTube", href: settings.youtubeUrl }].filter((item) => item.href);
 
   return (
     <div className="min-h-screen bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/</g, "\\u003c") }} />
-      <Link href="/ajuda" className="btn-pop fixed right-4 top-4 z-50 gap-2 bg-card px-4 py-3 text-xs text-primary shadow-[var(--shadow-pop-muted)] sm:right-6 sm:top-6"><CircleHelp className="h-5 w-5" />Ajuda e suporte</Link>
+      <HelpButton floating />
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary blob" />
@@ -422,9 +424,7 @@ export default async function Landing() {
       <footer className="border-t-2 border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Logo />
-          <p className="text-sm text-muted-foreground font-bold">
-            {content.footerText}
-          </p>
+          <div className="text-center sm:text-right"><p className="text-sm text-muted-foreground font-bold">{content.footerText}</p>{socialLinks.length > 0 && <nav aria-label="Redes sociais" className="mt-2 flex flex-wrap justify-center gap-3 text-xs font-extrabold text-primary sm:justify-end">{socialLinks.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" className="hover:underline">{item.label}</a>)}</nav>}</div>
         </div>
       </footer>
     </div>
