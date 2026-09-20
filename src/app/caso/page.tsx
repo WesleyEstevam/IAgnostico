@@ -45,7 +45,8 @@ export default function CasePage() {
   const [input, setInput] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
   const [chatError, setChatError] = useState<string>();
-  const [remainingChatMessages, setRemainingChatMessages] = useState(10);
+  const [remainingChatMessages, setRemainingChatMessages] = useState(3);
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [hypothesis, setHypothesis] = useState("");
   const [secondsRemaining, setSecondsRemaining] = useState(0);
   const [finishedReason, setFinishedReason] = useState<"tempo" | "diagnostico" | null>(null);
@@ -64,8 +65,13 @@ export default function CasePage() {
     const controller = new AbortController();
     const load = async () => {
       try {
-        if (!gameId) throw new Error("Esta partida não foi encontrada. Volte ao dashboard e inicie um novo plantão.");
-        const response = await fetch(`/api/games/${encodeURIComponent(gameId)}`, { signal: controller.signal });
+        if (!gameId)
+          throw new Error(
+            "Esta partida não foi encontrada. Volte ao dashboard e inicie um novo plantão.",
+          );
+        const response = await fetch(`/api/games/${encodeURIComponent(gameId)}`, {
+          signal: controller.signal,
+        });
         const payload = (await response.json()) as ClinicalCase & { error?: string };
         if (!response.ok) throw new Error(payload.error ?? "Não foi possível carregar o caso.");
         setClinicalCase(payload);
@@ -73,7 +79,10 @@ export default function CasePage() {
         setRemainingChatMessages(payload.remainingChatMessages);
         setSecondsRemaining(payload.remainingSeconds);
       } catch (error) {
-        if (!controller.signal.aborted) setLoadError(error instanceof Error ? error.message : "Não foi possível carregar o caso.");
+        if (!controller.signal.aborted)
+          setLoadError(
+            error instanceof Error ? error.message : "Não foi possível carregar o caso.",
+          );
       }
     };
     void load();
@@ -98,7 +107,9 @@ export default function CasePage() {
     stop();
 
     if (!gameId) {
-      setResultError("Esta partida não foi encontrada. Volte ao dashboard e inicie um novo plantão.");
+      setResultError(
+        "Esta partida não foi encontrada. Volte ao dashboard e inicie um novo plantão.",
+      );
       savingRef.current = false;
       setSavingResult(false);
       return;
@@ -116,7 +127,9 @@ export default function CasePage() {
       setSecondsRemaining(payload.remainingSeconds);
       await refreshAuthSession();
     } catch (error) {
-      setResultError(error instanceof Error ? error.message : "Não foi possível salvar o resultado.");
+      setResultError(
+        error instanceof Error ? error.message : "Não foi possível salvar o resultado.",
+      );
     } finally {
       savingRef.current = false;
       setSavingResult(false);
@@ -124,7 +137,9 @@ export default function CasePage() {
   };
 
   useEffect(() => {
-    finishRef.current = (reason) => { void persistResult(reason); };
+    finishRef.current = (reason) => {
+      void persistResult(reason);
+    };
   });
 
   // Navegadores exigem um gesto do usuário para liberar áudio
@@ -179,13 +194,21 @@ export default function CasePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
-      const payload = (await response.json()) as { reply?: string; remainingMessages?: number; error?: string };
-      if (!response.ok || !payload.reply) throw new Error(payload.error ?? "O paciente não conseguiu responder agora.");
+      const payload = (await response.json()) as {
+        reply?: string;
+        remainingMessages?: number;
+        error?: string;
+      };
+      if (!response.ok || !payload.reply)
+        throw new Error(payload.error ?? "O paciente não conseguiu responder agora.");
       setMsgs((current) => [...current, { who: "patient", text: payload.reply! }]);
       playChatBubble();
-      if (typeof payload.remainingMessages === "number") setRemainingChatMessages(payload.remainingMessages);
+      if (typeof payload.remainingMessages === "number")
+        setRemainingChatMessages(payload.remainingMessages);
     } catch (error) {
-      setChatError(error instanceof Error ? error.message : "O paciente não conseguiu responder agora.");
+      setChatError(
+        error instanceof Error ? error.message : "O paciente não conseguiu responder agora.",
+      );
     } finally {
       setSendingMessage(false);
     }
@@ -200,17 +223,31 @@ export default function CasePage() {
     ? `${String(Math.floor(result.remainingSeconds / 60)).padStart(2, "0")}:${String(result.remainingSeconds % 60).padStart(2, "0")}`
     : formattedTime;
 
-  if (!clinicalCase) return <div className="min-h-screen bg-background">
-    <Navbar />
-    <main className="grid min-h-[calc(100svh-4rem)] place-items-center px-4">
-      <div className="card-pop max-w-md p-8 text-center">
-        <div className="text-5xl">{loadError ? "🩺" : "⏳"}</div>
-        <h1 className="mt-4 text-2xl font-extrabold">{loadError ? "Não foi possível abrir o caso" : "Preparando o caso clínico"}</h1>
-        <p className="mt-2 font-bold text-muted-foreground">{loadError ?? "Carregando os dados do paciente com segurança…"}</p>
-        {loadError && <Link href="/dashboard" className="btn-pop mt-6 bg-primary text-primary-foreground shadow-[var(--shadow-pop)]">Voltar ao dashboard</Link>}
+  if (!clinicalCase)
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="grid min-h-[calc(100svh-4rem)] place-items-center px-4">
+          <div className="card-pop max-w-md p-8 text-center">
+            <div className="text-5xl">{loadError ? "🩺" : "⏳"}</div>
+            <h1 className="mt-4 text-2xl font-extrabold">
+              {loadError ? "Não foi possível abrir o caso" : "Preparando o caso clínico"}
+            </h1>
+            <p className="mt-2 font-bold text-muted-foreground">
+              {loadError ?? "Carregando os dados do paciente com segurança…"}
+            </p>
+            {loadError && (
+              <Link
+                href="/dashboard"
+                className="btn-pop mt-6 bg-primary text-primary-foreground shadow-[var(--shadow-pop)]"
+              >
+                Voltar ao dashboard
+              </Link>
+            )}
+          </div>
+        </main>
       </div>
-    </main>
-  </div>;
+    );
 
   return (
     <div className="min-h-screen bg-background">
@@ -220,9 +257,13 @@ export default function CasePage() {
         <div className="card-pop p-5 mb-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-2xl bg-info/15 grid place-items-center text-4xl">{clinicalCase.patient.avatar}</div>
+              <div className="h-16 w-16 rounded-2xl bg-info/15 grid place-items-center text-4xl">
+                {clinicalCase.patient.avatar}
+              </div>
               <div>
-                <div className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">{clinicalCase.specialtyLabel} · {clinicalCase.setting} · {clinicalCase.difficulty}</div>
+                <div className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                  {clinicalCase.specialtyLabel} · {clinicalCase.setting} · {clinicalCase.difficulty}
+                </div>
                 <h1 className="text-2xl font-extrabold tracking-tight">{clinicalCase.title}</h1>
                 <p className="text-sm text-muted-foreground font-bold">{clinicalCase.summary}</p>
               </div>
@@ -248,7 +289,9 @@ export default function CasePage() {
               >
                 ⏱ {formattedTime}
               </div>
-              <div className="rounded-full bg-xp/20 text-xp-foreground px-3 py-1.5 text-xs font-extrabold">★ +{clinicalCase.maxXp} XP</div>
+              <div className="rounded-full bg-xp/20 text-xp-foreground px-3 py-1.5 text-xs font-extrabold">
+                ★ +{clinicalCase.maxXp} XP
+              </div>
             </div>
           </div>
         </div>
@@ -257,11 +300,20 @@ export default function CasePage() {
           {/* Chat */}
           <div className="lg:col-span-2 card-pop p-0 overflow-hidden flex flex-col h-[640px]">
             <div className="px-5 py-3 border-b-2 border-border flex items-center gap-3 bg-muted/40">
-              <div className="h-9 w-9 rounded-full bg-info grid place-items-center text-info-foreground font-extrabold">P</div>
+              <div className="h-9 w-9 rounded-full bg-info grid place-items-center text-info-foreground font-extrabold">
+                P
+              </div>
               <div>
-                <div className="font-extrabold text-sm">Paciente · {clinicalCase.patient.name}, {clinicalCase.patient.age}</div>
+                <div className="font-extrabold text-sm">
+                  Paciente · {clinicalCase.patient.name}, {clinicalCase.patient.age}
+                </div>
                 <div className="text-[11px] text-primary font-bold">
-                  ● online · {sendingMessage ? "digitando…" : `${remainingChatMessages} perguntas disponíveis`}
+                  ● online ·{" "}
+                  {sendingMessage
+                    ? "digitando…"
+                    : remainingChatMessages > 0
+                      ? `${remainingChatMessages} perguntas disponíveis`
+                      : "cota de perguntas esgotada"}
                 </div>
               </div>
             </div>
@@ -269,23 +321,45 @@ export default function CasePage() {
             <div className="flex-1 overflow-y-auto p-5 space-y-3">
               {msgs.map((m, i) => (
                 <div key={i} className={`flex gap-2 ${m.who === "you" ? "justify-end" : ""}`}>
-                  {m.who === "patient" && <div className="h-8 w-8 rounded-full bg-info grid place-items-center text-xs text-info-foreground font-extrabold">P</div>}
-                  <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm font-medium ${m.who === "you" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted rounded-tl-sm"}`}>
+                  {m.who === "patient" && (
+                    <div className="h-8 w-8 rounded-full bg-info grid place-items-center text-xs text-info-foreground font-extrabold">
+                      P
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm font-medium ${m.who === "you" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted rounded-tl-sm"}`}
+                  >
                     {m.text}
                   </div>
                 </div>
               ))}
               {sendingMessage && (
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full bg-info grid place-items-center text-xs text-info-foreground font-extrabold">P</div>
-                  <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-2.5 text-sm font-bold text-muted-foreground animate-pulse">Digitando…</div>
+                  <div className="h-8 w-8 rounded-full bg-info grid place-items-center text-xs text-info-foreground font-extrabold">
+                    P
+                  </div>
+                  <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-2.5 text-sm font-bold text-muted-foreground animate-pulse">
+                    Digitando…
+                  </div>
                 </div>
               )}
               <div ref={chatEndRef} />
             </div>
 
             <div className="border-t-2 border-border bg-card p-3">
-              {chatError && <p role="alert" className="mb-2 text-xs font-bold text-destructive">{chatError}</p>}
+              {chatError && (
+                <p role="alert" className="mb-2 text-xs font-bold text-destructive">
+                  {chatError}
+                </p>
+              )}
+              {remainingChatMessages <= 0 && !finishedReason && (
+                <p
+                  role="status"
+                  className="mb-2 text-center text-xs font-semibold text-muted-foreground"
+                >
+                  Sua cota de perguntas para esse paciente se esgotou
+                </p>
+              )}
               <div className="flex gap-2">
                 <input
                   value={input}
@@ -298,10 +372,24 @@ export default function CasePage() {
                   }}
                   maxLength={500}
                   disabled={sendingMessage || Boolean(finishedReason) || remainingChatMessages <= 0}
-                  placeholder={remainingChatMessages > 0 ? "Pergunte ao paciente…" : "Limite de perguntas atingido"}
+                  placeholder={
+                    remainingChatMessages > 0
+                      ? "Pergunte ao paciente…"
+                      : "Cota de perguntas esgotada"
+                  }
                   className="flex-1 rounded-2xl border-2 border-border bg-muted/30 px-4 py-3 text-sm font-medium focus:outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                 />
-                <button type="button" disabled={sendingMessage || !input.trim() || Boolean(finishedReason) || remainingChatMessages <= 0} onClick={() => void send()} className="btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)] text-sm disabled:cursor-not-allowed disabled:opacity-60">
+                <button
+                  type="button"
+                  disabled={
+                    sendingMessage ||
+                    !input.trim() ||
+                    Boolean(finishedReason) ||
+                    remainingChatMessages <= 0
+                  }
+                  onClick={() => void send()}
+                  className="btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)] text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                >
                   {sendingMessage ? "Enviando…" : "Enviar"}
                 </button>
               </div>
@@ -315,19 +403,34 @@ export default function CasePage() {
               <h3 className="font-extrabold mb-3 flex items-center gap-2">🧪 Solicitar exames</h3>
               <div className="grid grid-cols-2 gap-2">
                 {clinicalCase.exams.map((exam) => (
-                  <button key={exam.name} type="button" onClick={() => setRevealedExams((current) => new Set(current).add(exam.name))} className="relative rounded-xl border-2 border-border bg-card px-3 py-2.5 text-xs font-extrabold transition-colors hover:border-primary hover:bg-accent">
+                  <button
+                    key={exam.name}
+                    type="button"
+                    onClick={() => setRevealedExams((current) => new Set(current).add(exam.name))}
+                    className="relative rounded-xl border-2 border-border bg-card px-3 py-2.5 text-xs font-extrabold transition-colors hover:border-primary hover:bg-accent"
+                  >
                     {exam.name}
                   </button>
                 ))}
               </div>
-              {revealedExams.size > 0 && <div className="mt-3 space-y-2 border-t border-border pt-3">
-                {clinicalCase.exams.filter((exam) => revealedExams.has(exam.name)).map((exam) => <p key={exam.name} className="rounded-xl bg-muted p-3 text-xs font-bold"><span className="text-info">{exam.name}:</span> {exam.result}</p>)}
-              </div>}
+              {revealedExams.size > 0 && (
+                <div className="mt-3 space-y-2 border-t border-border pt-3">
+                  {clinicalCase.exams
+                    .filter((exam) => revealedExams.has(exam.name))
+                    .map((exam) => (
+                      <p key={exam.name} className="rounded-xl bg-muted p-3 text-xs font-bold">
+                        <span className="text-info">{exam.name}:</span> {exam.result}
+                      </p>
+                    ))}
+                </div>
+              )}
             </div>
 
             {/* Hypothesis */}
             <div className="card-pop p-5">
-              <h3 className="font-extrabold mb-3 flex items-center gap-2">🎯 Hipótese diagnóstica</h3>
+              <h3 className="font-extrabold mb-3 flex items-center gap-2">
+                🎯 Hipótese diagnóstica
+              </h3>
               <textarea
                 value={hypothesis}
                 onChange={(e) => setHypothesis(e.target.value)}
@@ -341,17 +444,67 @@ export default function CasePage() {
                 disabled={savingResult || Boolean(result)}
                 className="mt-3 btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)] text-sm"
               >
-                {savingResult ? "Salvando resultado..." : resultError ? "Tentar salvar novamente" : "Enviar diagnóstico"}
+                {savingResult
+                  ? "Salvando resultado..."
+                  : resultError
+                    ? "Tentar salvar novamente"
+                    : "Enviar diagnóstico"}
               </button>
-              {resultError && <p role="alert" className="mt-3 text-sm font-bold text-destructive">{resultError}</p>}
+              {resultError && (
+                <p role="alert" className="mt-3 text-sm font-bold text-destructive">
+                  {resultError}
+                </p>
+              )}
             </div>
 
-            <Link href="/dashboard" className="block text-center text-sm font-extrabold text-muted-foreground hover:text-foreground">
+            <button
+              type="button"
+              onClick={() => setShowExitConfirmation(true)}
+              className="block text-center text-sm font-extrabold text-muted-foreground hover:text-foreground"
+            >
               ← Sair do caso
-            </Link>
+            </button>
           </div>
         </div>
       </main>
+
+      {showExitConfirmation && !result && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/60 p-4 backdrop-blur-sm">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exit-case-title"
+            aria-describedby="exit-case-description"
+            className="card-pop animate-bounce-in w-full max-w-md p-6 text-center sm:p-8"
+          >
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-streak/15 text-3xl" aria-hidden="true">
+              ⚠️
+            </div>
+            <h2 id="exit-case-title" className="mt-4 text-2xl font-extrabold">
+              Deseja sair deste caso?
+            </h2>
+            <p id="exit-case-description" className="mt-2 text-sm font-bold leading-relaxed text-muted-foreground">
+              Se você sair agora, todo o progresso deste caso será perdido.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setShowExitConfirmation(false)}
+                className="btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)]"
+              >
+                Continuar no caso
+              </button>
+              <Link
+                href="/dashboard"
+                className="btn-pop bg-muted text-foreground shadow-[var(--shadow-pop-muted)]"
+              >
+                Sair mesmo assim
+              </Link>
+            </div>
+          </section>
+        </div>
+      )}
 
       {result && (
         <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-foreground/70 p-4 backdrop-blur-md">
@@ -361,9 +514,17 @@ export default function CasePage() {
             aria-modal="true"
             aria-labelledby="result-title"
           >
-            <div className={`p-7 text-center text-white sm:p-9 ${result.evaluation === "correct" ? "bg-primary" : result.evaluation === "partial" ? "bg-info" : "bg-streak"}`}>
+            <div
+              className={`p-7 text-center text-white sm:p-9 ${result.evaluation === "correct" ? "bg-primary" : result.evaluation === "partial" ? "bg-info" : "bg-streak"}`}
+            >
               <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-white/20 text-4xl">
-                {result.evaluation === "correct" ? "✓" : result.evaluation === "partial" ? "🎯" : result.reason === "tempo" ? "⏱" : (
+                {result.evaluation === "correct" ? (
+                  "✓"
+                ) : result.evaluation === "partial" ? (
+                  "🎯"
+                ) : result.reason === "tempo" ? (
+                  "⏱"
+                ) : (
                   <Image
                     src="/feedback-medica-3d.png"
                     alt="Médica em estilo 3D"
@@ -375,8 +536,18 @@ export default function CasePage() {
               </div>
               <div className="mt-5 flex justify-center">
                 <span className="inline-flex items-center gap-2 rounded-full border-2 border-white/35 bg-white/20 px-5 py-2 text-sm font-extrabold uppercase tracking-[0.16em] shadow-lg backdrop-blur-sm">
-                  <span aria-hidden="true">{result.evaluation === "correct" ? "✓" : result.evaluation === "partial" ? "◐" : "✕"}</span>
-                  {result.evaluation === "correct" ? "Resposta correta" : result.evaluation === "partial" ? "Chegou perto" : "Resposta incorreta"}
+                  <span aria-hidden="true">
+                    {result.evaluation === "correct"
+                      ? "✓"
+                      : result.evaluation === "partial"
+                        ? "◐"
+                        : "✕"}
+                  </span>
+                  {result.evaluation === "correct"
+                    ? "Resposta correta"
+                    : result.evaluation === "partial"
+                      ? "Chegou perto"
+                      : "Resposta incorreta"}
                 </span>
               </div>
               <h2 id="result-title" className="mt-2 text-3xl font-extrabold sm:text-4xl">
@@ -384,21 +555,27 @@ export default function CasePage() {
                   ? "Diagnóstico correto!"
                   : result.evaluation === "partial"
                     ? "Você chegou perto!"
-                  : result.reason === "tempo"
-                    ? "O tempo acabou"
-                    : "Vamos revisar o caso"}
+                    : result.reason === "tempo"
+                      ? "O tempo acabou"
+                      : "Vamos revisar o caso"}
               </h2>
             </div>
 
             <div className="p-6 sm:p-8">
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-xp/15 p-4 text-center">
-                  <div className="text-2xl font-extrabold text-xp-foreground">★ +{result.xpEarned}</div>
-                  <div className="mt-1 text-xs font-bold uppercase text-muted-foreground">XP ganho</div>
+                  <div className="text-2xl font-extrabold text-xp-foreground">
+                    ★ +{result.xpEarned}
+                  </div>
+                  <div className="mt-1 text-xs font-bold uppercase text-muted-foreground">
+                    XP ganho
+                  </div>
                 </div>
                 <div className="rounded-2xl bg-info/10 p-4 text-center">
                   <div className="text-2xl font-extrabold text-info">{resultTime}</div>
-                  <div className="mt-1 text-xs font-bold uppercase text-muted-foreground">Tempo restante</div>
+                  <div className="mt-1 text-xs font-bold uppercase text-muted-foreground">
+                    Tempo restante
+                  </div>
                 </div>
               </div>
 
@@ -421,18 +598,37 @@ export default function CasePage() {
                 </p>
               </div>
 
-              {clinicalCase.sourceRefs.length > 0 && <div className="mt-4 rounded-2xl border border-border bg-muted/40 p-4">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">📚 Fontes do caso</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {clinicalCase.sourceRefs.map((source, index) => <a key={source} href={source} target="_blank" rel="noopener noreferrer" className="rounded-full bg-card px-3 py-1.5 text-xs font-extrabold text-info underline decoration-info/40 underline-offset-2 hover:decoration-info" title={source}>
-                    {clinicalCase.sourceRefs.length === 1 ? "Abrir referência clínica ↗" : `Abrir referência ${index + 1} ↗`}
-                  </a>)}
+              {clinicalCase.sourceRefs.length > 0 && (
+                <div className="mt-4 rounded-2xl border border-border bg-muted/40 p-4">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+                    📚 Fontes do caso
+                  </h3>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {clinicalCase.sourceRefs.map((source, index) => (
+                      <a
+                        key={source}
+                        href={source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full bg-card px-3 py-1.5 text-xs font-extrabold text-info underline decoration-info/40 underline-offset-2 hover:decoration-info"
+                        title={source}
+                      >
+                        {clinicalCase.sourceRefs.length === 1
+                          ? "Abrir referência clínica ↗"
+                          : `Abrir referência ${index + 1} ↗`}
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>}
+              )}
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Link
-                  href={result.evaluation === "correct" ? `/preparacao/${clinicalCase.requestedSpecialty}` : "/especialidade"}
+                  href={
+                    result.evaluation === "correct"
+                      ? `/preparacao/${clinicalCase.requestedSpecialty}`
+                      : "/especialidade"
+                  }
                   className="btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)]"
                 >
                   {result.evaluation === "correct" ? "Continuar" : "Novo plantão"}

@@ -1,5 +1,6 @@
 export type CaseSpecialty = "cardiologia" | "clinica-geral" | "infectologia" | "pediatria" | "ginecologia-obstetricia" | "anestesiologia" | "ortopedia" | "radiologia" | "oncologia" | "dermatologia";
-export const MAX_PATIENT_CHAT_MESSAGES = 10;
+export const FREE_PATIENT_CHAT_MESSAGES = 3;
+export const PRO_PATIENT_CHAT_MESSAGES = 10;
 export const PRO_CASE_SPECIALTIES: CaseSpecialty[] = ["pediatria", "ginecologia-obstetricia", "anestesiologia", "ortopedia", "radiologia", "oncologia", "dermatologia"];
 
 export type ClinicalCaseDocument = {

@@ -5,6 +5,7 @@ import { CardDealSound } from "@/presentation/components/sound/card-deal-sound";
 import { PRO_PLAN_CTA_HREF } from "@/shared/constants/plans";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
+import { hasActiveProAccess } from "@/core/payments/billing-service";
 
 const especialidadesGratuitas = [
   {
@@ -50,7 +51,7 @@ const especialidadesPro = [
 export default async function EspecialidadePage() {
   const user = await getCurrentFirebaseUser();
   const profile = user ? await getFirebaseAdminFirestore().collection("users").doc(user.uid).get() : null;
-  const hasProAccess = profile?.data()?.plan === "pro";
+  const hasProAccess = user && profile ? await hasActiveProAccess(user.uid, profile.data()) : false;
   return (
     <div className="min-h-screen bg-background">
       <CardDealSound />

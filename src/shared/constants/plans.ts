@@ -1,1 +1,1 @@
-export const PRO_PLAN_CTA_HREF = "/#plano-pro";
+export const PRO_PLAN_CTA_HREF = "/planos-cobrancas";

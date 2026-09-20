@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Logo } from "./logo";
 import { HelpButton } from "./help-button";
+import { PendingPaymentBanner } from "@/presentation/components/billing/pending-payment-banner";
 import {
   getAuthSnapshot,
   getServerAuthSnapshot,
@@ -67,7 +68,7 @@ export function Navbar() {
           </div>
         )}
         {!isAuthenticated && <span className="w-24" aria-hidden="true" />}
-        <Logo className="absolute left-1/2 -translate-x-1/2 max-sm:[&_img]:h-9" />
+        <Logo href={isAuthenticated ? "/dashboard" : "/"} className="absolute left-1/2 -translate-x-1/2 max-sm:[&_img]:h-9" />
         {isAuthenticated ? (
           <div className="flex items-center gap-2">
             <HelpButton />
@@ -122,6 +123,7 @@ export function Navbar() {
                 >
                   Minha evolução
                 </Link>
+                <Link href="/planos-cobrancas" className="block rounded-xl px-3 py-2 text-xs font-extrabold text-muted-foreground hover:bg-muted hover:text-foreground">Planos e cobranças</Link>
                 <Link
                   href="/ranking"
                   className="block rounded-xl px-3 py-2 text-xs font-extrabold text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -165,6 +167,7 @@ export function Navbar() {
           </div>
         )}
       </div>
+      <PendingPaymentBanner />
     </header>
   );
 }

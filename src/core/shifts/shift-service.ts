@@ -5,6 +5,7 @@ import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { ClinicalCaseNotFoundError, selectPublishedCase } from "@/core/cases/clinical-case-service";
 import { PRO_CASE_SPECIALTIES, type CaseSpecialty } from "@/core/cases/clinical-case-types";
 import { getPlanShiftLimits } from "@/core/admin/plan-admin-service";
+import { hasActiveProAccess } from "@/core/payments/billing-service";
 
 export const SHIFT_TIME_ZONE = "America/Bahia";
 export const FREE_PLAN_MAX_SHIFTS = 3;
@@ -75,7 +76,7 @@ export async function startShift(uid: string, specialty: string, requestId: stri
   const limits = await getPlanShiftLimits();
   const preflightUser = await userRef.get();
   if (!preflightUser.exists) throw new PlayerProfileNotFoundError();
-  const hasProAccess = preflightUser.data()?.plan === "pro";
+  const hasProAccess = await hasActiveProAccess(uid, preflightUser.data());
   if (!hasProAccess && PRO_CASE_SPECIALTIES.includes(specialty as CaseSpecialty)) throw new ProPlanRequiredError();
   const selectedCase = await selectPublishedCase(specialty as CaseSpecialty | "aleatorio", hasProAccess);
   if (!selectedCase) throw new ClinicalCaseNotFoundError();

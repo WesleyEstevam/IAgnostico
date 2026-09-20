@@ -2,7 +2,8 @@ import "server-only";
 
 import { Timestamp } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
-import { MAX_PATIENT_CHAT_MESSAGES, PRO_CASE_SPECIALTIES, type CaseSpecialty, type ClinicalCaseDocument, type PublicClinicalCase } from "./clinical-case-types";
+import { hasActiveProAccess } from "@/core/payments/billing-service";
+import { FREE_PATIENT_CHAT_MESSAGES, PRO_CASE_SPECIALTIES, PRO_PATIENT_CHAT_MESSAGES, type CaseSpecialty, type ClinicalCaseDocument, type PublicClinicalCase } from "./clinical-case-types";
 
 const specialtyLabels: Record<CaseSpecialty, string> = {
   cardiologia: "Cardiologia",
@@ -63,7 +64,10 @@ export async function selectPublishedCase(specialty: CaseSpecialty | "aleatorio"
 
 export async function getPublicGameCase(uid: string, gameId: string): Promise<PublicClinicalCase> {
   const firestore = getFirebaseAdminFirestore();
-  const gameSnapshot = await firestore.collection("gameSessions").doc(gameId).get();
+  const [gameSnapshot, userSnapshot] = await Promise.all([
+    firestore.collection("gameSessions").doc(gameId).get(),
+    firestore.collection("users").doc(uid).get(),
+  ]);
   if (!gameSnapshot.exists || gameSnapshot.data()?.uid !== uid || gameSnapshot.data()?.status !== "active") {
     throw new ClinicalCaseNotFoundError();
   }
@@ -88,6 +92,9 @@ export async function getPublicGameCase(uid: string, gameId: string): Promise<Pu
         .map(({ who, text }: { who: "patient" | "you"; text: string }) => ({ who, text }))
     : [];
   const chatMessageCount = typeof game.chatMessageCount === "number" ? game.chatMessageCount : 0;
+  const chatMessageLimit = await hasActiveProAccess(uid, userSnapshot.data())
+    ? PRO_PATIENT_CHAT_MESSAGES
+    : FREE_PATIENT_CHAT_MESSAGES;
 
   return {
     id: caseSnapshot.id,
@@ -109,7 +116,7 @@ export async function getPublicGameCase(uid: string, gameId: string): Promise<Pu
     sourceRefs: clinicalCase.sourceRefs.filter((source) => /^https?:\/\//i.test(source)),
     remainingSeconds,
     chatMessages,
-    remainingChatMessages: Math.max(0, MAX_PATIENT_CHAT_MESSAGES - chatMessageCount),
+    remainingChatMessages: Math.max(0, chatMessageLimit - chatMessageCount),
   };
 }
 

@@ -28,7 +28,7 @@ export function PricingSection({ plans, ctaHref, authenticated, title, descripti
           {isFree ? <p className="mt-1 text-sm font-bold text-muted-foreground">para sempre</p> : billing === "annual" ? <p className="mt-1 text-sm font-bold text-primary">{plan.annualDiscountPercent}% de desconto · equivalente a {money.format(annualPrice / 1200)}/mês</p> : <p className="mt-1 text-sm font-bold text-muted-foreground">Cobrança mensal</p>}
           <p className="mt-2 text-sm font-bold text-muted-foreground">{plan.description}</p>
           <ul className="mt-6 space-y-2 text-sm font-bold">{plan.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul>
-          <Link href={ctaHref} className={`mt-8 btn-pop w-full ${plan.highlighted ? "bg-primary text-primary-foreground shadow-[var(--shadow-pop)]" : "bg-muted text-foreground shadow-[var(--shadow-pop-muted)]"}`}>{authenticated && isFree ? "Acessar dashboard" : plan.ctaLabel}</Link>
+          <Link href={isFree ? ctaHref : authenticated ? `/checkout?plano=${encodeURIComponent(plan.id)}&ciclo=${billing}` : `/login?next=${encodeURIComponent(`/checkout?plano=${plan.id}&ciclo=${billing}`)}`} className={`mt-8 btn-pop w-full ${plan.highlighted ? "bg-primary text-primary-foreground shadow-[var(--shadow-pop)]" : "bg-muted text-foreground shadow-[var(--shadow-pop-muted)]"}`}>{authenticated && isFree ? "Acessar dashboard" : plan.ctaLabel}</Link>
         </div>;
       })}
     </div>

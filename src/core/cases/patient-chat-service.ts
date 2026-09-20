@@ -3,8 +3,9 @@ import "server-only";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { generateText } from "@/infrastructure/ai/text-generation";
+import { hasActiveProAccess } from "@/core/payments/billing-service";
 import { resolveClinicalCaseId } from "./clinical-case-service";
-import { MAX_PATIENT_CHAT_MESSAGES, type ClinicalCaseDocument } from "./clinical-case-types";
+import { FREE_PATIENT_CHAT_MESSAGES, PRO_PATIENT_CHAT_MESSAGES, type ClinicalCaseDocument } from "./clinical-case-types";
 
 type ChatMessage = { who: "patient" | "you"; text: string };
 
@@ -75,6 +76,10 @@ export async function chatWithPatient(uid: string, gameId: string, question: str
   const firestore = getFirebaseAdminFirestore();
   const gameRef = firestore.collection("gameSessions").doc(gameId);
   const cleanQuestion = question.trim();
+  const userSnapshot = await firestore.collection("users").doc(uid).get();
+  const messageLimit = await hasActiveProAccess(uid, userSnapshot.data())
+    ? PRO_PATIENT_CHAT_MESSAGES
+    : FREE_PATIENT_CHAT_MESSAGES;
 
   const context = await firestore.runTransaction(async (transaction) => {
     const gameSnapshot = await transaction.get(gameRef);
@@ -88,7 +93,7 @@ export async function chatWithPatient(uid: string, gameId: string, question: str
     if (Date.now() - startedAt >= durationSeconds * 1000) throw new PatientChatClosedError();
 
     const messageCount = typeof game.chatMessageCount === "number" ? game.chatMessageCount : 0;
-    if (messageCount >= MAX_PATIENT_CHAT_MESSAGES) throw new PatientChatLimitError();
+    if (messageCount >= messageLimit) throw new PatientChatLimitError();
 
     const caseRef = firestore.collection("clinicalCases").doc(resolveClinicalCaseId(game.caseId));
     const caseSnapshot = await transaction.get(caseRef);
@@ -131,6 +136,6 @@ export async function chatWithPatient(uid: string, gameId: string, question: str
 
   return {
     reply: patientReply,
-    remainingMessages: Math.max(0, MAX_PATIENT_CHAT_MESSAGES - context.messageCount - 1),
+    remainingMessages: Math.max(0, messageLimit - context.messageCount - 1),
   };
 }

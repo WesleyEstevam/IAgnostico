@@ -1,18 +1,18 @@
 import Link from "next/link";
-import { BarChart3, BookOpenText, CreditCard, Headphones, LayoutDashboard, ScrollText, Settings, ShieldCheck, Users } from "lucide-react";
+import { BarChart3, BookOpenText, CreditCard, HandCoins, Headphones, LayoutDashboard, ScrollText, Settings, ShieldCheck, TicketPercent, Users } from "lucide-react";
 import { Logo } from "@/presentation/components/shared/logo";
 import type { StaffRole } from "@/core/admin/admin-service";
 import { AdminLogoutButton } from "./admin-logout-button";
 
 const roleLabels: Record<StaffRole, string> = { superadmin: "Superadministrador", admin: "Administrador", support: "Atendimento / Suporte" };
-const available = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "admin", "support"] }, { href: "/admin/usuarios", label: "Usuários", icon: Users, roles: ["superadmin", "admin", "support"] }, { href: "/admin/casos", label: "Casos clínicos", icon: BookOpenText, roles: ["superadmin", "admin"] }, { href: "/admin/planos", label: "Planos e assinaturas", icon: CreditCard, roles: ["superadmin", "admin"] }, { href: "/admin/atendimento", label: "Atendimento", icon: Headphones, roles: ["superadmin", "admin", "support"] }, { href: "/admin/seo-conteudo", label: "SEO e conteúdo", icon: BarChart3, roles: ["superadmin", "admin"] }, { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText, roles: ["superadmin", "admin"] }, { href: "/admin/configuracoes", label: "Configurações", icon: Settings, roles: ["superadmin", "admin"] }];
+const available = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "admin", "support"] }, { href: "/admin/usuarios", label: "Usuários", icon: Users, roles: ["superadmin", "admin", "support"] }, { href: "/admin/casos", label: "Casos clínicos", icon: BookOpenText, roles: ["superadmin", "admin"] }, { href: "/admin/planos", label: "Planos e assinaturas", icon: CreditCard, roles: ["superadmin", "admin"] }, { href: "/admin/asaas", label: "Asaas", icon: HandCoins, roles: ["superadmin", "admin"] }, { href: "/admin/cupons", label: "Cupons", icon: TicketPercent, roles: ["superadmin", "admin"] }, { href: "/admin/atendimento", label: "Atendimento", icon: Headphones, roles: ["superadmin", "admin", "support"] }, { href: "/admin/seo-conteudo", label: "SEO e conteúdo", icon: BarChart3, roles: ["superadmin", "admin"] }, { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText, roles: ["superadmin", "admin"] }, { href: "/admin/configuracoes", label: "Configurações", icon: Settings, roles: ["superadmin", "admin"] }];
 const upcoming: { label: string; icon: typeof Settings }[] = [];
 
 export function AdminShell({ children, role, displayName }: { children: React.ReactNode; role: StaffRole; displayName: string }) {
   return <div className="min-h-screen bg-background lg:grid lg:grid-cols-[17rem_1fr]">
     <aside className="border-b-2 border-border bg-card lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r-2">
       <div className="flex h-16 items-center justify-between px-4 lg:h-20 lg:px-6">
-        <Logo />
+        <Logo href="/admin" />
         <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-extrabold uppercase text-primary">Admin</span>
       </div>
       <nav aria-label="Navegação administrativa" className="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1 lg:overflow-visible lg:pb-0">

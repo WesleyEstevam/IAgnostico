@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { Instagram, Linkedin, Youtube } from "lucide-react";
 import { Logo } from "@/presentation/components/shared/logo";
 import { HelpButton } from "@/presentation/components/shared/help-button";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
@@ -8,6 +9,8 @@ import { getPublicPlans } from "@/core/admin/plan-admin-service";
 import { PricingSection } from "@/presentation/components/landing/pricing-section";
 import { getSiteContent } from "@/core/admin/site-content-service";
 import { getApplicationSettings } from "@/core/admin/application-settings-service";
+import { PendingPaymentBanner } from "@/presentation/components/billing/pending-payment-banner";
+import { PROFILE_AVATARS } from "@/shared/constants/profile";
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
@@ -20,12 +23,17 @@ export default async function Landing() {
   const [user, plans, content, settings] = await Promise.all([getCurrentFirebaseUser(), getPublicPlans(), getSiteContent(), getApplicationSettings()]);
   const ctaHref = user ? "/dashboard" : "/login";
   const organizationSchema = { "@context": "https://schema.org", "@type": "Organization", name: settings.productName, legalName: settings.legalName, email: settings.supportEmail, url: content.canonicalUrl, logo: new URL(content.logoSquareUrl, content.canonicalUrl).toString() };
-  const socialLinks = [{ label: "Instagram", href: settings.instagramUrl }, { label: "LinkedIn", href: settings.linkedinUrl }, { label: "YouTube", href: settings.youtubeUrl }].filter((item) => item.href);
+  const socialLinks = [
+    { label: "Instagram", href: settings.instagramUrl, icon: Instagram },
+    { label: "LinkedIn", href: settings.linkedinUrl, icon: Linkedin },
+    { label: "YouTube", href: settings.youtubeUrl, icon: Youtube },
+  ].filter((item) => item.href);
 
   return (
     <div className="min-h-screen bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/</g, "\\u003c") }} />
       <HelpButton floating />
+      <PendingPaymentBanner />
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary blob" />
@@ -64,11 +72,15 @@ export default async function Landing() {
             </div>
             <div className="mt-8 flex items-center gap-6 text-sm text-muted-foreground">
               <div className="flex -space-x-2">
-                {["#58CC02", "#1CB0F6", "#FFC800", "#FF9600"].map((c, i) => (
-                  <div
-                    key={i}
-                    className="h-8 w-8 rounded-full border-2 border-background"
-                    style={{ background: c }}
+                {PROFILE_AVATARS.map((avatar, index) => (
+                  <Image
+                    key={avatar.id}
+                    src={avatar.src}
+                    width={40}
+                    height={40}
+                    alt={`Avatar de jogador: ${avatar.label}`}
+                    title={avatar.label}
+                    className={`h-9 w-9 rounded-full border-2 border-background object-cover shadow-sm transition-transform duration-200 ease-out hover:z-10 hover:-translate-y-1.5 hover:scale-105 ${["bg-primary/20", "bg-info/20", "bg-xp/25", "bg-streak/20"][index]}`}
                   />
                 ))}
               </div>
@@ -408,7 +420,15 @@ export default async function Landing() {
               />
               <p className="font-bold text-lg leading-snug">“{t.t}”</p>
               <div className="mt-5 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full" style={{ background: t.c }} />
+                <Image
+                  src={PROFILE_AVATARS[i].src}
+                  alt={`Avatar de ${t.n}`}
+                  title={PROFILE_AVATARS[i].label}
+                  width={48}
+                  height={48}
+                  className="h-11 w-11 rounded-full border-2 border-background object-cover shadow-sm transition-transform duration-200 ease-out hover:-translate-y-1 hover:scale-105"
+                  style={{ background: t.c }}
+                />
                 <div>
                   <div className="font-extrabold text-sm">{t.n}</div>
                   <div className="text-xs text-muted-foreground font-bold">{t.u}</div>
@@ -424,7 +444,7 @@ export default async function Landing() {
       <footer className="border-t-2 border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Logo />
-          <div className="text-center sm:text-right"><p className="text-sm text-muted-foreground font-bold">{content.footerText}</p>{socialLinks.length > 0 && <nav aria-label="Redes sociais" className="mt-2 flex flex-wrap justify-center gap-3 text-xs font-extrabold text-primary sm:justify-end">{socialLinks.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" className="hover:underline">{item.label}</a>)}</nav>}</div>
+          <div className="text-center sm:text-right"><p className="text-sm text-muted-foreground font-bold">{content.footerText}</p>{socialLinks.length > 0 && <nav aria-label="Redes sociais" className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-end">{socialLinks.map(({ label, href, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={`Acessar ${label}`} title={label} className="grid h-9 w-9 place-items-center rounded-full border-2 border-primary/20 bg-primary/10 text-primary transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"><Icon className="h-4 w-4" aria-hidden="true" /></a>)}</nav>}</div>
         </div>
       </footer>
     </div>

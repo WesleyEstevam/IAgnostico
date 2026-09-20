@@ -26,6 +26,8 @@ const actionLabels: Record<string, string> = {
   "support.settings_updated": "Configurações de atendimento atualizadas",
   "support.subjects_updated": "Assuntos de atendimento atualizados",
   "application_settings.turnstile_updated": "Cloudflare Turnstile atualizado",
+  "payment_settings.asaas_updated": "Configuração do Asaas atualizada",
+  "coupon.updated": "Cupom atualizado",
   "application_settings.updated": "Configurações gerais atualizadas",
 };
 const targetLabels: Record<string, string> = {
@@ -38,6 +40,8 @@ const targetLabels: Record<string, string> = {
   supportTicket: "Chamado",
   supportSettings: "Configurações de atendimento",
   applicationSettings: "Configurações gerais",
+  paymentSettings: "Configuração de pagamento",
+  coupon: "Cupom",
 };
 
 export default async function AuditPage({
@@ -110,6 +114,8 @@ export default async function AuditPage({
           <option value="support">Atendimento</option>
           <option value="siteContent">SEO e conteúdo</option>
           <option value="application_settings">Configurações</option>
+          <option value="payment_settings">Pagamentos</option>
+          <option value="coupon">Cupons</option>
           <option value="staff">Administradores</option>
         </select>
         <select
