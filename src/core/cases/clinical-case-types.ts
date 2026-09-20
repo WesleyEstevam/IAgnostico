@@ -1,4 +1,5 @@
 export type CaseSpecialty = "cardiologia" | "clinica-geral" | "infectologia" | "pediatria" | "ginecologia-obstetricia" | "anestesiologia" | "ortopedia" | "radiologia" | "oncologia" | "dermatologia";
+export type CaseDifficulty = "facil" | "intermediario" | "dificil";
 export const FREE_PATIENT_CHAT_MESSAGES = 3;
 export const PRO_PATIENT_CHAT_MESSAGES = 10;
 export const PRO_CASE_SPECIALTIES: CaseSpecialty[] = ["pediatria", "ginecologia-obstetricia", "anestesiologia", "ortopedia", "radiologia", "oncologia", "dermatologia"];
@@ -8,7 +9,7 @@ export type ClinicalCaseDocument = {
   plan?: "free" | "pro";
   status: "draft" | "published" | "archived";
   specialty: CaseSpecialty;
-  difficulty: "facil" | "intermediario" | "dificil";
+  difficulty: CaseDifficulty;
   title: string;
   setting: string;
   summary: string;

@@ -6,6 +6,7 @@ import { PRO_PLAN_CTA_HREF } from "@/shared/constants/plans";
 import { getCurrentFirebaseUser } from "@/infrastructure/firebase/session";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { hasActiveProAccess } from "@/core/payments/billing-service";
+import { DifficultyPicker } from "./difficulty-picker";
 
 const especialidadesGratuitas = [
   {
@@ -77,9 +78,10 @@ export default async function EspecialidadePage() {
           </div>
           <div className="stagger grid gap-4 sm:grid-cols-2">
             {especialidadesGratuitas.map((especialidade) => (
-              <Link
+              <DifficultyPicker
                 key={especialidade.id}
-                href={`/preparacao/${especialidade.id}`}
+                specialtyId={especialidade.id}
+                specialtyName={especialidade.nome}
                 className="card-pop card-jelly group flex min-h-40 items-center gap-5 p-5 text-left sm:p-6"
               >
                 <div className={`grid h-20 w-20 shrink-0 place-items-center rounded-3xl text-4xl ${especialidade.cor}`}>
@@ -94,7 +96,7 @@ export default async function EspecialidadePage() {
                     Jogar agora <span className="transition-transform group-hover:translate-x-1">→</span>
                   </span>
                 </div>
-              </Link>
+              </DifficultyPicker>
             ))}
           </div>
         </section>
@@ -108,16 +110,30 @@ export default async function EspecialidadePage() {
           </div>
           <div className="stagger grid gap-4 sm:grid-cols-2">
             {especialidadesPro.map((especialidade) => (
-              <Link
-                key={especialidade.nome}
-                href={hasProAccess ? `/preparacao/${especialidade.id}` : PRO_PLAN_CTA_HREF}
-                aria-label={hasProAccess ? `Jogar ${especialidade.nome}` : `${especialidade.nome}, disponível no plano Pro. Ver assinatura.`}
-                className={hasProAccess
-                  ? "card-pop card-jelly group relative flex min-h-40 items-center gap-5 overflow-hidden border-primary/25 p-5 text-left sm:p-6"
-                  : "card-pop group relative flex min-h-40 items-center gap-5 overflow-hidden border-border bg-muted/60 p-5 text-left text-muted-foreground grayscale transition hover:-translate-y-1 hover:grayscale-[70%] hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 sm:p-6"}
-              >
+              hasProAccess ? (
+                <DifficultyPicker
+                  key={especialidade.nome}
+                  specialtyId={especialidade.id}
+                  specialtyName={especialidade.nome}
+                  className="card-pop card-jelly group relative flex min-h-40 items-center gap-5 overflow-hidden border-primary/25 p-5 text-left sm:p-6"
+                >
+                  <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-border bg-background/80 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider">Pro</span>
+                  <div className="grid h-20 w-20 shrink-0 place-items-center rounded-3xl bg-border/70 text-4xl opacity-65">{especialidade.icone}</div>
+                  <div className="min-w-0 flex-1 pr-8">
+                    <h3 className="text-xl font-extrabold text-muted-foreground">{especialidade.nome}</h3>
+                    <p className="mt-1 text-sm font-bold text-muted-foreground/80">{especialidade.descricao}</p>
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold uppercase tracking-wide">Jogar agora <span className="transition-transform group-hover:translate-x-1">→</span></span>
+                  </div>
+                </DifficultyPicker>
+              ) : (
+                <Link
+                  key={especialidade.nome}
+                  href={PRO_PLAN_CTA_HREF}
+                  aria-label={`${especialidade.nome}, disponível no plano Pro. Ver assinatura.`}
+                  className="card-pop group relative flex min-h-40 items-center gap-5 overflow-hidden border-border bg-muted/60 p-5 text-left text-muted-foreground grayscale transition hover:-translate-y-1 hover:grayscale-[70%] hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 sm:p-6"
+                >
                 <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-border bg-background/80 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider">
-                  {!hasProAccess && <Lock className="h-3 w-3" />} Pro
+                  <Lock className="h-3 w-3" /> Pro
                 </span>
                 <div className="grid h-20 w-20 shrink-0 place-items-center rounded-3xl bg-border/70 text-4xl opacity-65">
                   {especialidade.icone}
@@ -126,10 +142,11 @@ export default async function EspecialidadePage() {
                   <h3 className="text-xl font-extrabold text-muted-foreground">{especialidade.nome}</h3>
                   <p className="mt-1 text-sm font-bold text-muted-foreground/80">{especialidade.descricao}</p>
                   <span className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold uppercase tracking-wide">
-                    {hasProAccess ? "Jogar agora" : "Ver plano Pro"} <span className="transition-transform group-hover:translate-x-1">→</span>
+                    Ver plano Pro <span className="transition-transform group-hover:translate-x-1">→</span>
                   </span>
                 </div>
-              </Link>
+                </Link>
+              )
             ))}
           </div>
         </section>

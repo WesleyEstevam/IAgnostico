@@ -12,6 +12,7 @@ import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
 
 const startShiftSchema = z.object({
   specialty: z.enum(["cardiologia", "clinica-geral", "infectologia", "pediatria", "ginecologia-obstetricia", "anestesiologia", "ortopedia", "radiologia", "oncologia", "dermatologia", "aleatorio"]),
+  difficulty: z.enum(["facil", "intermediario", "dificil"]),
   requestId: z.string().uuid(),
 });
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const input = startShiftSchema.parse(await request.json());
-    return NextResponse.json(await startShift(user.uid, input.specialty, input.requestId));
+    return NextResponse.json(await startShift(user.uid, input.specialty, input.difficulty, input.requestId));
   } catch (error) {
     if (error instanceof NoShiftsAvailableError) {
       return NextResponse.json(

@@ -626,7 +626,7 @@ export default function CasePage() {
                 <Link
                   href={
                     result.evaluation === "correct"
-                      ? `/preparacao/${clinicalCase.requestedSpecialty}`
+                      ? `/preparacao/${clinicalCase.requestedSpecialty}?dificuldade=${clinicalCase.difficulty}`
                       : "/especialidade"
                   }
                   className="btn-pop bg-primary text-primary-foreground shadow-[var(--shadow-pop)]"

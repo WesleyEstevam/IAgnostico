@@ -3,7 +3,7 @@ import "server-only";
 import { FieldValue } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { ClinicalCaseNotFoundError, selectPublishedCase } from "@/core/cases/clinical-case-service";
-import { PRO_CASE_SPECIALTIES, type CaseSpecialty } from "@/core/cases/clinical-case-types";
+import { PRO_CASE_SPECIALTIES, type CaseDifficulty, type CaseSpecialty } from "@/core/cases/clinical-case-types";
 import { getPlanShiftLimits } from "@/core/admin/plan-admin-service";
 import { hasActiveProAccess } from "@/core/payments/billing-service";
 
@@ -68,7 +68,7 @@ export async function getRefreshedShiftBalance(uid: string) {
   });
 }
 
-export async function startShift(uid: string, specialty: string, requestId: string) {
+export async function startShift(uid: string, specialty: string, difficulty: CaseDifficulty, requestId: string) {
   const firestore = getFirebaseAdminFirestore();
   const userRef = firestore.collection("users").doc(uid);
   const gameRef = firestore.collection("gameSessions").doc(requestId);
@@ -78,7 +78,7 @@ export async function startShift(uid: string, specialty: string, requestId: stri
   if (!preflightUser.exists) throw new PlayerProfileNotFoundError();
   const hasProAccess = await hasActiveProAccess(uid, preflightUser.data());
   if (!hasProAccess && PRO_CASE_SPECIALTIES.includes(specialty as CaseSpecialty)) throw new ProPlanRequiredError();
-  const selectedCase = await selectPublishedCase(specialty as CaseSpecialty | "aleatorio", hasProAccess);
+  const selectedCase = await selectPublishedCase(specialty as CaseSpecialty | "aleatorio", difficulty, hasProAccess);
   if (!selectedCase) throw new ClinicalCaseNotFoundError();
   const clinicalCase = selectedCase.data();
 
@@ -105,6 +105,7 @@ export async function startShift(uid: string, specialty: string, requestId: stri
       uid,
       specialty: clinicalCase.specialty,
       requestedSpecialty: specialty,
+      requestedDifficulty: difficulty,
       caseId: selectedCase.id,
       caseTitle: clinicalCase.title,
       status: "active",

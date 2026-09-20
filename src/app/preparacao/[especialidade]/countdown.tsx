@@ -9,9 +9,10 @@ import { PRO_PLAN_CTA_HREF } from "@/shared/constants/plans";
 
 type CountdownProps = {
   especialidade: string;
+  dificuldade: "facil" | "intermediario" | "dificil";
 };
 
-export function Countdown({ especialidade }: CountdownProps) {
+export function Countdown({ especialidade, dificuldade }: CountdownProps) {
   const router = useRouter();
   const [etapa, setEtapa] = useState<"3" | "2" | "1" | "começou">("3");
   const [errorMessage, setErrorMessage] = useState<string>();
@@ -58,7 +59,7 @@ export function Countdown({ especialidade }: CountdownProps) {
       }, 2000),
       window.setTimeout(() => {
         const start = async () => {
-          const storageKey = `iagnostico:shift-request:${especialidade}`;
+          const storageKey = `iagnostico:shift-request:${especialidade}:${dificuldade}`;
           const requestId = window.sessionStorage.getItem(storageKey) ?? crypto.randomUUID();
           window.sessionStorage.setItem(storageKey, requestId);
 
@@ -66,7 +67,7 @@ export function Countdown({ especialidade }: CountdownProps) {
             const response = await fetch("/api/shifts/start", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ specialty: especialidade, requestId }),
+              body: JSON.stringify({ specialty: especialidade, difficulty: dificuldade, requestId }),
             });
             const payload = (await response.json()) as { error?: string; gameId?: string };
             if (!response.ok || !payload.gameId)
@@ -103,7 +104,7 @@ export function Countdown({ especialidade }: CountdownProps) {
       audioContextRef.current = null;
       if (context) void context.close();
     };
-  }, [especialidade, router, tocarBipe]);
+  }, [dificuldade, especialidade, router, tocarBipe]);
 
   const comecou = etapa === "começou";
 

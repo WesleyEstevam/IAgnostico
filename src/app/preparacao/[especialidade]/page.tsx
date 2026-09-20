@@ -22,15 +22,22 @@ export function generateStaticParams() {
 
 export default async function PreparacaoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ especialidade: string }>;
+  searchParams: Promise<{ dificuldade?: string }>;
 }) {
   const { especialidade: valorRecebido } = await params;
+  const { dificuldade: dificuldadeRecebida } = await searchParams;
   const especialidade: Especialidade = especialidades.includes(
     valorRecebido as Especialidade,
   )
     ? (valorRecebido as Especialidade)
     : "aleatorio";
 
-  return <Countdown especialidade={especialidade} />;
+  const dificuldade = ["facil", "intermediario", "dificil"].includes(dificuldadeRecebida ?? "")
+    ? (dificuldadeRecebida as "facil" | "intermediario" | "dificil")
+    : "intermediario";
+
+  return <Countdown especialidade={especialidade} dificuldade={dificuldade} />;
 }
