@@ -10,6 +10,14 @@ export type AsaasPublicSettings = {
   environment: AsaasEnvironment;
   apiKeyConfigured: boolean;
   webhookTokenConfigured: boolean;
+  account: {
+    name: string;
+    email: string;
+    document: string;
+    accountNumber: string;
+    status: string;
+    syncedAt: string;
+  } | null;
 };
 type AsaasPrivateSettings = { apiKey: string; webhookToken: string };
 
@@ -21,12 +29,28 @@ export async function getAsaasSettingsForAdmin(): Promise<AsaasPublicSettings> {
   ]);
   const publicData = publicDocument.data();
   const privateData = privateDocument.data();
+  const account = publicData?.account;
   return {
     enabled: publicData?.enabled === true,
     environment: publicData?.environment === "production" ? "production" : "sandbox",
     apiKeyConfigured: typeof privateData?.apiKey === "string" && privateData.apiKey.length > 10,
     webhookTokenConfigured: typeof privateData?.webhookToken === "string" && privateData.webhookToken.length >= 32,
+    account: account && typeof account === "object" ? {
+      name: typeof account.name === "string" ? account.name : "",
+      email: typeof account.email === "string" ? account.email : "",
+      document: typeof account.document === "string" ? account.document : "",
+      accountNumber: typeof account.accountNumber === "string" ? account.accountNumber : "",
+      status: typeof account.status === "string" ? account.status : "",
+      syncedAt: typeof account.syncedAt?.toDate === "function" ? account.syncedAt.toDate().toISOString() : "",
+    } : null,
   };
+}
+
+export async function saveAsaasAccountSummary(account: Omit<NonNullable<AsaasPublicSettings["account"]>, "syncedAt">) {
+  await getFirebaseAdminFirestore().collection("paymentSettings").doc("asaas").set({
+    account: { ...account, syncedAt: FieldValue.serverTimestamp() },
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
 }
 
 export async function getAsaasCredentials(): Promise<AsaasPublicSettings & AsaasPrivateSettings> {

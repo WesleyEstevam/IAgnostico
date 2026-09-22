@@ -27,8 +27,8 @@ export async function syncAsaasWebhookAction(state: AsaasActionState): Promise<A
     await requirePermission("settings.manage");
     const application = await getApplicationSettings();
     const webhookUrl = `${application.publicUrl.replace(/\/$/, "")}/api/webhooks/asaas`;
-    const id = await syncAsaasWebhook(webhookUrl, application.supportEmail);
+    const result = await syncAsaasWebhook(webhookUrl, application.supportEmail);
     revalidatePath("/admin/asaas");
-    return { success: `Webhook sincronizado com o Asaas (${id}).` };
+    return { success: `Conta ${result.account.name} conectada e webhook sincronizado (${result.webhookId}).` };
   } catch (error) { return { error: error instanceof Error ? error.message : "Não foi possível sincronizar o webhook." }; }
 }

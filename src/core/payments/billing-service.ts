@@ -31,7 +31,7 @@ export async function createCheckout(input: { uid: string; planId: string; cycle
   const userRef = firestore.collection("users").doc(input.uid);
   const userDocument = await userRef.get();
   if (!userDocument.exists) throw new Error("Cadastro do jogador não encontrado.");
-  const gateway = await getPaymentGateway("asaas");
+  const gateway = await getPaymentGateway("asaas", { allowDisabledSandbox: input.testMode === true });
   const providerSettings = await getAsaasCredentials();
   if (input.testMode && providerSettings.environment !== "sandbox") throw new Error("O checkout administrativo só pode ser usado no ambiente Sandbox.");
   const environment = providerSettings.environment;
