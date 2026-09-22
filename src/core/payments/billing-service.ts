@@ -34,17 +34,25 @@ export async function createCheckout(input: { uid: string; planId: string; cycle
   const gateway = await getPaymentGateway("asaas", { allowDisabledSandbox: input.testMode === true });
   const providerSettings = await getAsaasCredentials();
   if (input.testMode && providerSettings.environment !== "sandbox") throw new Error("O checkout administrativo só pode ser usado no ambiente Sandbox.");
+  // A base de CEP do Sandbox pode divergir do ViaCEP. Nos testes administrativos,
+  // usamos o endereço fictício recomendado nos exemplos oficiais do Asaas.
+  const gatewayIdentity: BillingIdentity = input.testMode ? {
+    ...input.identity,
+    postalCode: "89223005",
+    addressNumber: "277",
+    addressComplement: "Teste Sandbox",
+  } : input.identity;
   const environment = providerSettings.environment;
   let customerId = typeof userDocument.data()?.billing?.asaasCustomers?.[environment] === "string" ? userDocument.data()!.billing.asaasCustomers[environment] as string : "";
   if (!customerId) {
-    customerId = await gateway.createCustomer({ ...input.identity, externalReference: input.uid });
+    customerId = await gateway.createCustomer({ ...gatewayIdentity, externalReference: input.uid });
     await userRef.set({ billing: { asaasCustomers: { [environment]: customerId }, updatedAt: FieldValue.serverTimestamp() } }, { merge: true });
   }
   const checkoutId = randomUUID().replaceAll("-", "");
   const expiresAt = new Date(Date.now() + CHECKOUT_DURATION_MS);
   await firestore.collection("checkoutSessions").doc(checkoutId).create({ uid: input.uid, planId: input.planId, cycle: input.cycle, method: input.method, provider: gateway.provider, environment, testMode: input.testMode === true, status: "processing", couponCode: summary.code || null, originalAmountCents: summary.originalAmountCents, discountCents: summary.discountCents, amountCents: summary.finalAmountCents, createdAt: FieldValue.serverTimestamp(), expiresAt: Timestamp.fromDate(expiresAt) });
   try {
-    const common = { customerId, amountCents: summary.finalAmountCents, cycle: input.cycle, description: `${summary.plan.name} ${input.cycle === "annual" ? "Anual" : "Mensal"}`, externalReference: checkoutId, identity: input.identity, remoteIp: input.remoteIp };
+    const common = { customerId, amountCents: summary.finalAmountCents, cycle: input.cycle, description: `${summary.plan.name} ${input.cycle === "annual" ? "Anual" : "Mensal"}`, externalReference: checkoutId, identity: gatewayIdentity, remoteIp: input.remoteIp };
     const result = input.method === "credit_card" ? await gateway.createCardSubscription({ ...common, card: input.card! }) : await gateway.createPixAutomaticSubscription(common);
     const subscriptionRef = firestore.collection("subscriptions").doc(checkoutId);
     const batch = firestore.batch();
