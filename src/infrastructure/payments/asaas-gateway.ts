@@ -49,8 +49,38 @@ export class AsaasGateway implements PaymentGateway {
     const immediateExpiration = new Date(Date.now() + 30 * 60_000).toISOString();
     const payload = await this.request("/pix/automatic/authorizations", { method: "POST", body: JSON.stringify({ frequency: input.cycle === "annual" ? "ANNUALLY" : "MONTHLY", contractId: input.externalReference.slice(0, 35), startDate: today(), value: input.amountCents / 100, description: input.description.slice(0, 35), customerId: input.customerId, paymentCreationMode: "SUBSCRIPTION", retryPolicy: "ALLOW_THREE_IN_SEVEN_DAYS", immediateQrCode: { originalValue: input.amountCents / 100, expirationSeconds: 30 * 60 } }) });
     if (typeof payload.id !== "string") throw new Error("O Asaas não retornou a autorização do Pix Automático.");
-    const qr = payload.immediateQrCode && typeof payload.immediateQrCode === "object" ? payload.immediateQrCode as JsonObject : {};
-    return { providerSubscriptionId: payload.id, providerPaymentId: typeof qr.paymentId === "string" ? qr.paymentId : null, status: typeof payload.status === "string" ? payload.status : "PENDING", qrCodePayload: typeof qr.payload === "string" ? qr.payload : typeof qr.copyPaste === "string" ? qr.copyPaste : undefined, qrCodeImage: typeof qr.encodedImage === "string" ? qr.encodedImage : undefined, expiresAt: typeof qr.expirationDate === "string" ? qr.expirationDate : immediateExpiration };
+    let qrSource: unknown = payload;
+    let qrCodePayload = findString(qrSource, ["payload", "copyPaste", "qrCodePayload"]);
+    let qrCodeImage = findString(qrSource, ["encodedImage", "qrCodeImage"]);
+    let providerPaymentId = findString(qrSource, ["paymentId", "payment"]);
+
+    if (!qrCodePayload && !qrCodeImage) {
+      const authorization = await this.request(`/pix/automatic/authorizations/${encodeURIComponent(payload.id)}`);
+      qrSource = authorization;
+      qrCodePayload = findString(qrSource, ["payload", "copyPaste", "qrCodePayload"]);
+      qrCodeImage = findString(qrSource, ["encodedImage", "qrCodeImage"]);
+      providerPaymentId = providerPaymentId ?? findString(qrSource, ["paymentId", "payment"]);
+    }
+
+    if (providerPaymentId && (!qrCodePayload || !qrCodeImage)) {
+      const paymentQrCode = await this.request(`/payments/${encodeURIComponent(providerPaymentId)}/pixQrCode`);
+      qrCodePayload = qrCodePayload ?? findString(paymentQrCode, ["payload", "copyPaste", "qrCodePayload"]);
+      qrCodeImage = qrCodeImage ?? findString(paymentQrCode, ["encodedImage", "qrCodeImage"]);
+      qrSource = paymentQrCode;
+    }
+
+    if (!qrCodePayload && !qrCodeImage) {
+      throw new Error("O Asaas criou a autorização, mas não retornou o QR Code. Gere uma nova tentativa ou verifique a disponibilidade do Pix Automático na conta.");
+    }
+
+    return {
+      providerSubscriptionId: payload.id,
+      providerPaymentId: providerPaymentId ?? null,
+      status: typeof payload.status === "string" ? payload.status : "PENDING",
+      qrCodePayload,
+      qrCodeImage,
+      expiresAt: findString(qrSource, ["expirationDate", "expiresAt"]) ?? immediateExpiration,
+    };
   }
 
   async cancelSubscription(id: string, method: PaymentMethod) {
@@ -63,6 +93,19 @@ export class AsaasGateway implements PaymentGateway {
 }
 
 function today() { return new Date().toISOString().slice(0, 10); }
+
+function findString(value: unknown, keys: string[], depth = 0): string | undefined {
+  if (depth > 5 || !value || typeof value !== "object") return undefined;
+  const object = value as JsonObject;
+  for (const key of keys) {
+    if (typeof object[key] === "string" && object[key]) return object[key] as string;
+  }
+  for (const nested of Object.values(object)) {
+    const match = findString(nested, keys, depth + 1);
+    if (match) return match;
+  }
+  return undefined;
+}
 
 export async function getPaymentGateway(provider = "asaas", options?: { allowDisabledSandbox?: boolean }): Promise<PaymentGateway> {
   if (provider === "asaas") return new AsaasGateway(options?.allowDisabledSandbox === true);
