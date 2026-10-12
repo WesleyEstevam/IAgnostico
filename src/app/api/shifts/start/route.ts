@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof NoShiftsAvailableError) {
       return NextResponse.json(
-        { error: "Hoje foi um dia cansativo. Descanse e retorne para o serviço amanhã" },
+        { code: "NO_SHIFTS_AVAILABLE", error: "Seus plantões de hoje acabaram. Eles serão renovados amanhã." },
         { status: 409 },
       );
     }
@@ -38,10 +38,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Perfil do jogador não encontrado." }, { status: 404 });
     }
     if (error instanceof ProPlanRequiredError) {
-      return NextResponse.json({ error: "Esta especialidade está disponível apenas no plano Pro." }, { status: 403 });
+      return NextResponse.json({ code: "PRO_PLAN_REQUIRED", error: "Esta especialidade está disponível apenas no plano Pro." }, { status: 403 });
     }
     if (error instanceof ClinicalCaseNotFoundError) {
-      return NextResponse.json({ error: "Ainda não há casos publicados para esta especialidade." }, { status: 503 });
+      return NextResponse.json({ code: "CASE_UNAVAILABLE", error: "Ainda não há casos publicados para esta especialidade e dificuldade. Escolha outra opção." }, { status: 503 });
     }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Dados do plantão inválidos." }, { status: 400 });

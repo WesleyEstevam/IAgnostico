@@ -15,6 +15,7 @@ type CountdownProps = {
 export function Countdown({ especialidade, dificuldade }: CountdownProps) {
   const router = useRouter();
   const [etapa, setEtapa] = useState<"3" | "2" | "1" | "começou">("3");
+  const [errorCode, setErrorCode] = useState<string>();
   const [errorMessage, setErrorMessage] = useState<string>();
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -69,9 +70,11 @@ export function Countdown({ especialidade, dificuldade }: CountdownProps) {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ specialty: especialidade, difficulty: dificuldade, requestId }),
             });
-            const payload = (await response.json()) as { error?: string; gameId?: string };
-            if (!response.ok || !payload.gameId)
+            const payload = (await response.json()) as { error?: string; code?: string; gameId?: string };
+            if (!response.ok || !payload.gameId) {
+              if (!cancelled) setErrorCode(payload.code);
               throw new Error(payload.error ?? "Não foi possível iniciar o plantão.");
+            }
             if (cancelled) return;
 
             window.sessionStorage.removeItem(storageKey);
@@ -128,11 +131,11 @@ export function Countdown({ especialidade, dificuldade }: CountdownProps) {
               <Image src="/plantao-tres-z.png" width={1536} height={1024} alt="" aria-hidden="true" className="amimir-z-layer absolute left-1 top-7 h-16 w-24 object-contain sm:left-2 sm:top-8 sm:h-20 sm:w-28" />
               <Image src="/plantao-amimir-balao.png" width={1635} height={962} alt="" aria-hidden="true" className="amimir-bubble-layer absolute right-0 top-0 h-20 w-44 object-contain sm:h-24 sm:w-52" />
             </div>
-            <h1 className="mt-3 text-2xl font-extrabold">Seu plantão acabou</h1>
+            <h1 className="mt-3 text-2xl font-extrabold">{errorCode === "NO_SHIFTS_AVAILABLE" ? "Seus plantões de hoje acabaram" : errorCode === "CASE_UNAVAILABLE" ? "Caso indisponível" : errorCode === "PRO_PLAN_REQUIRED" ? "Especialidade do plano Pro" : "Não foi possível iniciar o plantão"}</h1>
             <p className="mt-2 font-bold text-muted-foreground">{errorMessage}</p>
             <div className="mt-6 flex flex-col gap-3">
-              <Link href={PRO_PLAN_CTA_HREF} className="btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)]">
-                Continuar com o plano Pro
+              <Link href={errorCode === "PRO_PLAN_REQUIRED" ? PRO_PLAN_CTA_HREF : "/especialidade"} className="btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)]">
+                {errorCode === "PRO_PLAN_REQUIRED" ? "Conhecer o plano Pro" : "Escolher especialidade"}
               </Link>
               <button
                 type="button"

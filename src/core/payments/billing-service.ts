@@ -143,3 +143,16 @@ function serializeDocument(document: FirebaseFirestore.DocumentSnapshot): Record
 }
 
 function addCycle(date: Date, cycle: BillingCycle) { const result = new Date(date); if (cycle === "annual") result.setFullYear(result.getFullYear() + 1); else result.setMonth(result.getMonth() + 1); return result; }
+
+export async function getResumableCheckout(uid: string, planId: string, cycle: BillingCycle) {
+  const firestore = getFirebaseAdminFirestore();
+  const user = (await firestore.collection("users").doc(uid).get()).data();
+  const id = user?.billing?.currentSubscriptionId;
+  if (typeof id !== "string") return null;
+  const session = (await firestore.collection("checkoutSessions").doc(id).get()).data();
+  if (!session || session.uid !== uid || session.testMode === true || session.planId !== planId || session.cycle !== cycle || session.status === "failed") return null;
+  const subscription = (await firestore.collection("subscriptions").doc(id).get()).data();
+  if (!subscription || ["cancelled", "refunded", "refund_requested"].includes(subscription.status)) return null;
+  const expiresAt = session.expiresAt instanceof Timestamp ? session.expiresAt.toDate().toISOString() : new Date().toISOString();
+  return { checkoutId: id, expiresAt, method: String(session.method), status: String(session.status), qrCodePayload: typeof session.qrCodePayload === "string" ? session.qrCodePayload : undefined, qrCodeImage: typeof session.qrCodeImage === "string" ? session.qrCodeImage : undefined };
+}

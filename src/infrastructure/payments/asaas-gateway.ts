@@ -83,6 +83,15 @@ export class AsaasGateway implements PaymentGateway {
     };
   }
 
+  async getPixAuthorization(id: string) {
+    return this.request(`/pix/automatic/authorizations/${encodeURIComponent(id)}`);
+  }
+
+  async getSubscriptionPayments(id: string) {
+    const payload = await this.request(`/subscriptions/${encodeURIComponent(id)}/payments?limit=100`);
+    return Array.isArray(payload.data) ? payload.data as JsonObject[] : [];
+  }
+
   async cancelSubscription(id: string, method: PaymentMethod) {
     await this.request(method === "pix_automatic" ? `/pix/automatic/authorizations/${encodeURIComponent(id)}` : `/subscriptions/${encodeURIComponent(id)}`, { method: "DELETE" });
   }
