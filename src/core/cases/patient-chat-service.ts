@@ -13,6 +13,7 @@ export class PatientChatNotFoundError extends Error {}
 export class PatientChatForbiddenError extends Error {}
 export class PatientChatClosedError extends Error {}
 export class PatientChatLimitError extends Error {}
+export class PatientChatUnavailableError extends Error {}
 
 function normalize(value: string) {
   return value
@@ -122,7 +123,11 @@ export async function chatWithPatient(uid: string, gameId: string, question: str
       { who: "you", text: cleanQuestion },
     ]);
   } catch (error) {
-    console.error("Falha ao gerar resposta do paciente", error);
+    console.error("Falha ao gerar resposta do paciente", { error: error instanceof Error ? error.name : "unknown" });
+    // The reservation prevents parallel requests from exceeding the limit.
+    // Return it when generation fails, without recording a fictitious reply.
+    await gameRef.update({ chatMessageCount: FieldValue.increment(-1) });
+    throw new PatientChatUnavailableError();
   }
 
   const patientReply = reply ?? context.clinicalCase.fallbackReply ?? "Não sei informar, doutor.";

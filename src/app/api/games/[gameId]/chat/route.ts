@@ -7,6 +7,7 @@ import {
   PatientChatForbiddenError,
   PatientChatLimitError,
   PatientChatNotFoundError,
+  PatientChatUnavailableError,
 } from "@/core/cases/patient-chat-service";
 import { isAllowedRequestOrigin } from "@/shared/security/request-origin";
 
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (error instanceof PatientChatNotFoundError) return NextResponse.json({ error: "Partida não encontrada." }, { status: 404 });
     if (error instanceof PatientChatClosedError) return NextResponse.json({ error: "Este caso já foi encerrado." }, { status: 409 });
     if (error instanceof PatientChatLimitError) return NextResponse.json({ error: "Sua cota de perguntas para esse paciente se esgotaram" }, { status: 429 });
+    if (error instanceof PatientChatUnavailableError) return NextResponse.json({ error: "O chat do paciente está indisponível no momento. Sua cota de perguntas foi preservada. Tente novamente mais tarde." }, { status: 503 });
     console.error("Falha no chat do paciente", error);
     return NextResponse.json({ error: "O paciente não conseguiu responder agora." }, { status: 500 });
   }

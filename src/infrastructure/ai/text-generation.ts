@@ -1,5 +1,7 @@
 import "server-only";
 
+export class AIUnavailableError extends Error {}
+
 export type AIProvider = "openai" | "gemini";
 export type AIMessage = { role: "user" | "assistant"; content: string };
 
@@ -65,8 +67,14 @@ async function generateWithOpenAI(input: GenerationInput) {
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    console.error("Provedor OpenAI não respondeu", { status: response.status, error: error.slice(0, 500) });
+    const payload = await response.json().catch(() => ({})) as { error?: { code?: string; type?: string } };
+    console.error("Provedor OpenAI não respondeu", {
+      status: response.status,
+      code: payload.error?.code,
+      type: payload.error?.type,
+      model: selectedModel("openai"),
+      requestId: response.headers.get("x-request-id"),
+    });
     return null;
   }
   return extractOpenAIText((await response.json()) as OpenAIResponse) || null;
@@ -118,6 +126,14 @@ async function generateWithGemini(input: GenerationInput) {
     .trim() || null;
 }
 
-export function generateText(input: GenerationInput) {
-  return selectedProvider() === "gemini" ? generateWithGemini(input) : generateWithOpenAI(input);
+export async function generateText(input: GenerationInput) {
+  try {
+    const reply = await (selectedProvider() === "gemini" ? generateWithGemini(input) : generateWithOpenAI(input));
+    if (!reply) throw new AIUnavailableError("O serviço de IA não retornou uma resposta.");
+    return reply;
+  } catch (error) {
+    if (error instanceof AIUnavailableError) throw error;
+    console.error("Falha de conexão com o provedor de IA", { provider: selectedProvider(), error: error instanceof Error ? error.name : "unknown" });
+    throw new AIUnavailableError("O serviço de IA está indisponível.");
+  }
 }
