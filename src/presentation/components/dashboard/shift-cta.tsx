@@ -16,7 +16,7 @@ export function ShiftCta({ shiftsAvailable }: ShiftCtaProps) {
     return (
       <Link
         href="/especialidade"
-        className="btn-pop animate-float mx-auto min-w-72 gap-3 bg-primary px-8 py-5 text-base text-primary-foreground shadow-[0_14px_30px_rgba(70,163,2,0.3),0_6px_0_0_var(--primary-dark)] ring-4 ring-primary/15 hover:ring-primary/30 sm:min-w-80 sm:text-lg"
+        className="btn-pop w-full max-w-80 gap-3 bg-primary px-8 py-5 text-base text-primary-foreground shadow-[0_14px_30px_rgba(70,163,2,0.3),0_6px_0_0_var(--primary-dark)] ring-4 ring-primary/15 hover:ring-primary/30 sm:text-lg"
       >
         <span className="grid h-9 w-9 place-items-center rounded-full bg-white/20 text-xl text-white">▶</span>
         Iniciar plantão

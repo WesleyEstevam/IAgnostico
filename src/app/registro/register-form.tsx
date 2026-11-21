@@ -18,6 +18,7 @@ export function RegisterForm() {
     const name = String(formData.get("name")).trim();
     const email = String(formData.get("email")).trim();
     const password = String(formData.get("password"));
+    const university = String(formData.get("university") ?? "").trim();
     setPending(true);
     setErrorMessage(undefined);
 
@@ -26,7 +27,7 @@ export function RegisterForm() {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(credential.user, { displayName: name });
       const idToken = await credential.user.getIdToken(true);
-      const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
+      const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken, university }) });
       const payload = await readApiResponse<{ error: string }>(response);
       if (!response.ok) throw apiResponseError(response, payload.error);
       if (!Object.keys(payload).length) throw new Error("O servidor não confirmou a criação da sessão. Consulte os logs da função /api/auth/session na Vercel.");
@@ -52,6 +53,7 @@ export function RegisterForm() {
     <label className="block"><span className="mb-2 block text-sm font-extrabold">Nome</span><input name="name" autoComplete="name" required disabled={pending} className="w-full rounded-2xl border-2 border-border bg-muted/30 px-4 py-3.5 font-bold outline-none focus:border-primary" /></label>
     <label className="block"><span className="mb-2 block text-sm font-extrabold">E-mail</span><input type="email" name="email" autoComplete="email" required disabled={pending} className="w-full rounded-2xl border-2 border-border bg-muted/30 px-4 py-3.5 font-bold outline-none focus:border-primary" /></label>
     <label className="block"><span className="mb-2 block text-sm font-extrabold">Senha</span><input type="password" name="password" autoComplete="new-password" minLength={6} required disabled={pending} className="w-full rounded-2xl border-2 border-border bg-muted/30 px-4 py-3.5 font-bold outline-none focus:border-primary" /></label>
+    <label className="block"><span className="mb-2 block text-sm font-extrabold">Universidade <span className="font-normal text-muted-foreground">(opcional)</span></span><input name="university" maxLength={120} placeholder="Nome da universidade onde você estuda" disabled={pending} className="w-full rounded-2xl border-2 border-border bg-muted/30 px-4 py-3.5 font-bold outline-none focus:border-primary" /></label>
     {errorMessage && <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm font-bold text-destructive">{errorMessage}</p>}
     <button type="submit" disabled={pending} className="btn-pop w-full bg-primary text-primary-foreground shadow-[var(--shadow-pop)] disabled:opacity-60">{pending ? "Criando conta..." : "Criar conta grátis"}</button>
   </form>;

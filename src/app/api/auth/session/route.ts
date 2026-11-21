@@ -15,7 +15,10 @@ import { buildUserSearchKeywords, normalizeUserSearch } from "@/core/admin/admin
 import { getApplicationSettings } from "@/core/admin/application-settings-service";
 import { getPlanShiftLimits } from "@/core/admin/plan-admin-service";
 
-const sessionSchema = z.object({ idToken: z.string().min(1) });
+const sessionSchema = z.object({
+  idToken: z.string().min(1),
+  university: z.string().trim().max(120, "O nome da universidade deve ter até 120 caracteres.").optional(),
+});
 
 export async function POST(request: NextRequest) {
   if (!isAllowedRequestOrigin(request)) {
@@ -23,7 +26,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { idToken } = sessionSchema.parse(await request.json());
+    const { idToken, university } = sessionSchema.parse(await request.json());
     const adminAuth = getFirebaseAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const nowInSeconds = Math.floor(Date.now() / 1000);
@@ -84,6 +87,7 @@ export async function POST(request: NextRequest) {
       } else {
         transaction.create(userRef, {
           ...identity,
+          university: university || null,
           plan: "free",
           shifts: {
             current: planLimits.free,
@@ -120,6 +124,7 @@ export async function POST(request: NextRequest) {
     });
     return response;
   } catch (error) {
+    if (error instanceof z.ZodError) return NextResponse.json({ error: error.issues[0]?.message ?? "Dados de cadastro inválidos." }, { status: 400 });
     console.error("Falha ao criar sessão do Firebase", error);
     const message = error instanceof Error ? error.message : "";
     if (message.includes("Firebase Admin não configurado")) {

@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { getFirebaseAdminFirestore } from "@/infrastructure/firebase/admin";
 import { getPublicPlans } from "@/core/admin/plan-admin-service";
 import { getPaymentGateway } from "@/infrastructure/payments/asaas-gateway";
+import { cancellationRequestSchema } from "./cancellation-validation";
 import { validateCoupon } from "./coupon-service";
 import type { BillingCycle, BillingIdentity, CardData, PaymentMethod } from "./payment-gateway";
 import { getAsaasCredentials } from "./payment-settings-service";
@@ -104,7 +105,8 @@ export async function hasActiveProAccess(uid: string, userData?: FirebaseFiresto
   return true;
 }
 
-export async function cancelPlayerSubscription(uid: string, mode: "period_end" | "refund") {
+export async function cancelPlayerSubscription(uid: string, mode: "period_end" | "refund", reason: string) {
+  const cancellationReason = cancellationRequestSchema.parse({ mode, reason }).reason;
   const firestore = getFirebaseAdminFirestore();
   const userRef = firestore.collection("users").doc(uid);
   const userDocument = await userRef.get();
@@ -114,17 +116,20 @@ export async function cancelPlayerSubscription(uid: string, mode: "period_end" |
   const subscriptionDocument = await subscriptionRef.get();
   const data = subscriptionDocument.data();
   if (!subscriptionDocument.exists || typeof data?.providerSubscriptionId !== "string") throw new Error("Assinatura não encontrada.");
+  if (data.uid !== uid || data.testMode === true) throw new Error("Assinatura não encontrada.");
+  if (["cancelled", "refunded", "refund_requested"].includes(data.status)) throw new Error("Esta assinatura já foi cancelada.");
+  if (mode === "period_end" && data.cancelAtPeriodEnd === true) return { message: "O cancelamento já está agendado para o fim do período pago." };
   const method: PaymentMethod = data.method === "pix_automatic" ? "pix_automatic" : "credit_card";
   const gateway = await getPaymentGateway(typeof data.provider === "string" ? data.provider : "asaas");
   if (mode === "refund") {
     const latest = await userRef.collection("billingPayments").orderBy("createdAt", "desc").limit(50).get();
-    const payment = latest.docs.filter((document) => ["CONFIRMED", "RECEIVED"].includes(document.data().status)).map((document) => ({ document, data: document.data(), time: document.data().paidAt instanceof Timestamp ? document.data().paidAt.toMillis() : document.data().createdAt instanceof Timestamp ? document.data().createdAt.toMillis() : 0 })).sort((a, b) => b.time - a.time)[0];
+    const payment = latest.docs.filter((document) => document.data().checkoutId === subscriptionId && ["CONFIRMED", "RECEIVED"].includes(document.data().status)).map((document) => ({ document, data: document.data(), time: document.data().paidAt instanceof Timestamp ? document.data().paidAt.toMillis() : document.data().createdAt instanceof Timestamp ? document.data().createdAt.toMillis() : 0 })).sort((a, b) => b.time - a.time)[0];
     if (!payment || Date.now() - payment.time > 7 * 24 * 60 * 60_000) throw new Error("O prazo de 7 dias corridos para solicitar reembolso terminou.");
     const providerPaymentId = typeof payment.data.providerPaymentId === "string" ? payment.data.providerPaymentId : payment.document.id;
     await gateway.refundPayment(providerPaymentId);
     await gateway.cancelSubscription(data.providerSubscriptionId, method);
     const batch = firestore.batch();
-    batch.set(subscriptionRef, { status: "refund_requested", cancelledAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    batch.set(subscriptionRef, { status: "refund_requested", cancellationReason, cancelledAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     batch.set(userRef, { plan: "free", subscriptionStatus: "refund_requested", updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     batch.set(payment.document.ref, { status: "REFUND_REQUESTED", updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     await batch.commit();
@@ -133,7 +138,7 @@ export async function cancelPlayerSubscription(uid: string, mode: "period_end" |
   await gateway.cancelSubscription(data.providerSubscriptionId, method);
   const start = data.currentPeriodStart instanceof Timestamp ? data.currentPeriodStart.toDate() : new Date();
   const periodEnd = data.currentPeriodEnd instanceof Timestamp ? data.currentPeriodEnd.toDate() : addCycle(start, data.cycle === "annual" ? "annual" : "monthly");
-  await subscriptionRef.set({ cancelAtPeriodEnd: true, status: "cancelling", currentPeriodEnd: Timestamp.fromDate(periodEnd), cancelledAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+  await subscriptionRef.set({ cancelAtPeriodEnd: true, status: "cancelling", cancellationReason, currentPeriodEnd: Timestamp.fromDate(periodEnd), cancelledAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }, { merge: true });
   return { message: `Sua assinatura permanecerá ativa até ${periodEnd.toLocaleDateString("pt-BR", { timeZone: "America/Bahia" })}.` };
 }
 

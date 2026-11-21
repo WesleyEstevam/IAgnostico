@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof NoShiftsAvailableError) {
       return NextResponse.json(
-        { code: "NO_SHIFTS_AVAILABLE", error: "Seus plantões de hoje acabaram. Eles serão renovados amanhã." },
+        { code: "NO_SHIFTS_AVAILABLE", error: "Eles serão renovados amanhã." },
         { status: 409 },
       );
     }
