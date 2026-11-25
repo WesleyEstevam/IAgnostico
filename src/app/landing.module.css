@@ -1,0 +1,21 @@
+.landing {
+  font-family: var(--font-landing-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+.landing h1,
+.landing h2 {
+  font-family: var(--font-landing-title), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 1000;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.landing h1 {
+  font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+}
+
+.landing h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}

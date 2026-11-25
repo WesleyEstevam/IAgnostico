@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Nunito, Nunito_Sans } from "next/font/google";
+import styles from "./landing.module.css";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { Instagram, Linkedin, Youtube } from "lucide-react";
@@ -11,6 +13,9 @@ import { getSiteContent } from "@/core/admin/site-content-service";
 import { getApplicationSettings } from "@/core/admin/application-settings-service";
 import { PendingPaymentBanner } from "@/presentation/components/billing/pending-payment-banner";
 import { PROFILE_AVATARS } from "@/shared/constants/profile";
+
+const nunitoTitle = Nunito({ weight: "1000", subsets: ["latin", "latin-ext"], display: "swap", variable: "--font-landing-title" });
+const nunitoSans = Nunito_Sans({ subsets: ["latin", "latin-ext"], display: "swap", variable: "--font-landing-body" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent();
@@ -30,7 +35,7 @@ export default async function Landing() {
   ].filter((item) => item.href);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`${styles.landing} ${nunitoTitle.variable} ${nunitoSans.variable} min-h-screen bg-background`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/</g, "\\u003c") }} />
       <HelpButton floating />
       <PendingPaymentBanner />
